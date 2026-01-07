@@ -172,32 +172,96 @@ sap.ui.define([
             var sPath = oEvent.getSource().getBindingContext("compensation").getPath();
             var oRow = oModel.getProperty(sPath);
             
-            var fMerit = parseFloat(oRow.meritIncrease) || 0;
-            var fPromotion = parseFloat(oRow.promotionIncrease) || 0;
-            var fAdjustment = parseFloat(oRow.adjustmentIncrease) || 0;
             var fCurrentSalary = parseFloat(oRow.currentSalary) || 0;
+            var fMeritPercent = parseFloat(oRow.meritIncrease) || 0;
+            var fMeritAmount = parseFloat(oRow.meritIncreaseAmount) || 0;
+            var fAdjustmentPercent = parseFloat(oRow.adjustmentIncrease) || 0;
+            var fAdjustmentAmount = parseFloat(oRow.adjustmentIncreaseAmount) || 0;
+            var fLumpSum = parseFloat(oRow.lumpSumAmount) || 0;
             
-            var fTotalIncrease = fMerit + fPromotion + fAdjustment;
-            var fNewSalary = fCurrentSalary * (1 + fTotalIncrease / 100);
+            // Calculate merit amount from percent if amount is not set
+            if (fMeritPercent > 0 && fMeritAmount === 0 && fCurrentSalary > 0) {
+                fMeritAmount = fCurrentSalary * (fMeritPercent / 100);
+                oModel.setProperty(sPath + "/meritIncreaseAmount", fMeritAmount.toFixed(2));
+            }
             
-            oModel.setProperty(sPath + "/totalIncrease", fTotalIncrease.toFixed(2));
-            oModel.setProperty(sPath + "/newSalary", fNewSalary.toFixed(2));
-            oModel.setProperty(sPath + "/proposedSalary", fNewSalary.toFixed(2));
+            // Calculate merit percent from amount if percent is not set
+            if (fMeritAmount > 0 && fMeritPercent === 0 && fCurrentSalary > 0) {
+                fMeritPercent = (fMeritAmount / fCurrentSalary) * 100;
+                oModel.setProperty(sPath + "/meritIncrease", fMeritPercent.toFixed(2));
+            }
+            
+            // Calculate adjustment amount from percent if amount is not set
+            if (fAdjustmentPercent > 0 && fAdjustmentAmount === 0 && fCurrentSalary > 0) {
+                fAdjustmentAmount = fCurrentSalary * (fAdjustmentPercent / 100);
+                oModel.setProperty(sPath + "/adjustmentIncreaseAmount", fAdjustmentAmount.toFixed(2));
+            }
+            
+            // Calculate adjustment percent from amount if percent is not set
+            if (fAdjustmentAmount > 0 && fAdjustmentPercent === 0 && fCurrentSalary > 0) {
+                fAdjustmentPercent = (fAdjustmentAmount / fCurrentSalary) * 100;
+                oModel.setProperty(sPath + "/adjustmentIncrease", fAdjustmentPercent.toFixed(2));
+            }
+            
+            // Calculate total raise (merit + adjustment)
+            var fTotalRaise = fMeritAmount + fAdjustmentAmount;
+            var fTotalIncreaseAmount = fTotalRaise + fLumpSum;
+            var fTotalIncreasePercent = fMeritPercent + fAdjustmentPercent;
+            
+            // Calculate final salary
+            var fFinalSalary = fCurrentSalary + fTotalRaise;
+            var fFinalSalaryRate = fFinalSalary / 12; // Monthly rate
+            var fTotalPayIncludingLumpSum = fFinalSalary + fLumpSum;
+            
+            // Update all calculated fields
+            oModel.setProperty(sPath + "/totalRaise", fTotalRaise.toFixed(2));
+            oModel.setProperty(sPath + "/totalIncreaseAmount", fTotalIncreaseAmount.toFixed(2));
+            oModel.setProperty(sPath + "/totalIncrease", fTotalIncreasePercent.toFixed(2));
+            oModel.setProperty(sPath + "/finalSalary", fFinalSalary.toFixed(2));
+            oModel.setProperty(sPath + "/newSalary", fFinalSalary.toFixed(2));
+            oModel.setProperty(sPath + "/proposedSalary", fFinalSalary.toFixed(2));
+            oModel.setProperty(sPath + "/finalSalaryRate", fFinalSalaryRate.toFixed(2));
+            oModel.setProperty(sPath + "/totalPayIncludingLumpSum", fTotalPayIncludingLumpSum.toFixed(2));
+            oModel.setProperty(sPath + "/totalPay", fTotalPayIncludingLumpSum.toFixed(2));
         },
 
-        onCalculateFromProposed: function (oEvent) {
+        onCalculateFromFinal: function (oEvent) {
             var oModel = this.getView().getModel("compensation");
             var sPath = oEvent.getSource().getBindingContext("compensation").getPath();
             var oRow = oModel.getProperty(sPath);
             
-            var fProposedSalary = parseFloat(oRow.proposedSalary) || 0;
+            var fFinalSalary = parseFloat(oRow.finalSalary) || 0;
             var fCurrentSalary = parseFloat(oRow.currentSalary) || 0;
+            var fLumpSum = parseFloat(oRow.lumpSumAmount) || 0;
             
             if (fCurrentSalary > 0) {
-                var fTotalIncrease = ((fProposedSalary - fCurrentSalary) / fCurrentSalary) * 100;
-                oModel.setProperty(sPath + "/totalIncrease", fTotalIncrease.toFixed(2));
-                oModel.setProperty(sPath + "/newSalary", fProposedSalary.toFixed(2));
+                var fTotalRaise = fFinalSalary - fCurrentSalary;
+                var fTotalIncreasePercent = (fTotalRaise / fCurrentSalary) * 100;
+                var fTotalIncreaseAmount = fTotalRaise + fLumpSum;
+                var fFinalSalaryRate = fFinalSalary / 12;
+                var fTotalPayIncludingLumpSum = fFinalSalary + fLumpSum;
+                
+                oModel.setProperty(sPath + "/totalRaise", fTotalRaise.toFixed(2));
+                oModel.setProperty(sPath + "/totalIncrease", fTotalIncreasePercent.toFixed(2));
+                oModel.setProperty(sPath + "/totalIncreaseAmount", fTotalIncreaseAmount.toFixed(2));
+                oModel.setProperty(sPath + "/newSalary", fFinalSalary.toFixed(2));
+                oModel.setProperty(sPath + "/proposedSalary", fFinalSalary.toFixed(2));
+                oModel.setProperty(sPath + "/finalSalaryRate", fFinalSalaryRate.toFixed(2));
+                oModel.setProperty(sPath + "/totalPayIncludingLumpSum", fTotalPayIncludingLumpSum.toFixed(2));
+                oModel.setProperty(sPath + "/totalPay", fTotalPayIncludingLumpSum.toFixed(2));
             }
+        },
+        
+        onShowBudgets: function () {
+            MessageBox.information("Budget information will be displayed here");
+        },
+        
+        onShowApprovals: function () {
+            MessageBox.information("Approval workflow will be displayed here");
+        },
+        
+        onExport: function () {
+            MessageBox.information("Export to Excel functionality will be implemented");
         },
 
         _generateUUID: function () {

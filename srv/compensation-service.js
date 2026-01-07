@@ -84,38 +84,63 @@ module.exports = cds.service.impl(async function() {
     }
   }
 
-  // GET Compensation Data from SuccessFactors
+  // GET Compensation Data from SuccessFactors Employee Compensation API v1
   this.on('getCompensationData', async (req) => {
-    const { companyId, userId } = req.data;
+    const { companyId, userId, formId } = req.data;
     
     try {
-      // Call SuccessFactors Compensation API
-      // Adjust the endpoint based on your SuccessFactors API version
-      const endpoint = `/odata/v2/CompensationData?$filter=companyId eq '${companyId}' and userId eq '${userId}'`;
+      // Call SuccessFactors Employee Compensation API v1
+      // API Reference: https://api.sap.com/api/sap-sf-employeeCompensation-v1/resource/Employee_Compensation
+      let endpoint = `/odata/v2/Employee_Compensation`;
+      
+      // Build filter query
+      const filters = [];
+      if (companyId) filters.push(`companyId eq '${companyId}'`);
+      if (userId) filters.push(`userId eq '${userId}'`);
+      if (formId) filters.push(`formId eq '${formId}'`);
+      
+      if (filters.length > 0) {
+        endpoint += `?$filter=${filters.join(' and ')}`;
+      }
+      
       const sfData = await callSFAPI(endpoint);
       
-      // Transform SuccessFactors data to our format
+      // Transform SuccessFactors Employee Compensation API v1 data to our format
+      // Mapping based on: https://api.sap.com/api/sap-sf-employeeCompensation-v1/resource/Employee_Compensation
       const compensationData = sfData.d?.results?.map(item => ({
         id: item.id || cds.utils.uuid(),
         companyId: item.companyId || companyId,
         userId: item.userId || userId,
-        formId: item.formId,
-        employeeId: item.employeeId,
-        employeeName: item.employeeName,
-        position: item.position,
-        department: item.department,
-        currentSalary: item.currentSalary,
-        proposedSalary: item.proposedSalary,
-        meritIncrease: item.meritIncrease,
-        promotionIncrease: item.promotionIncrease,
-        adjustmentIncrease: item.adjustmentIncrease,
-        totalIncrease: item.totalIncrease,
-        newSalary: item.newSalary,
-        currency: item.currency || 'USD',
-        effectiveDate: item.effectiveDate,
-        status: item.status,
-        comments: item.comments,
-        lastModified: item.lastModified || new Date().toISOString(),
+        formId: item.formId || formId,
+        employeeId: item.employeeId || item.empId,
+        employeeName: item.employeeName || item.empName || `${item.firstName || ''} ${item.lastName || ''}`.trim(),
+        position: item.jobTitle || item.position,
+        department: item.department || item.departmentName,
+        currentSalary: item.currentSalary || item.baseSalary || item.salary,
+        proposedSalary: item.proposedSalary || item.newSalary,
+        meritIncrease: item.meritIncrease || item.meritPercent || item.meritIncreasePercent,
+        meritIncreaseAmount: item.meritIncreaseAmount || item.meritDollar,
+        promotionIncrease: item.promotionIncrease || item.promotionPercent || 0,
+        promotionIncreaseAmount: item.promotionIncreaseAmount || item.promotionDollar || 0,
+        adjustmentIncrease: item.adjustmentIncrease || item.adjustmentPercent || 0,
+        adjustmentIncreaseAmount: item.adjustmentIncreaseAmount || item.adjustmentDollar || 0,
+        lumpSum: item.lumpSum || item.lumpSumAmount || 0,
+        totalIncrease: item.totalIncrease || item.totalIncreasePercent,
+        totalIncreaseAmount: item.totalIncreaseAmount || item.totalRaise,
+        newSalary: item.newSalary || item.finalSalary || item.proposedSalary,
+        finalSalaryRate: item.finalSalaryRate || item.newSalaryRate,
+        totalPay: item.totalPay || item.totalPayIncludingLumpSum,
+        currency: item.currency || item.currencyCode || 'USD',
+        effectiveDate: item.effectiveDate || item.effectiveDate,
+        status: item.status || item.compensationStatus || 'Draft',
+        comments: item.comments || item.notes,
+        performanceRating: item.performanceRating || item.overallPerformanceRating,
+        payGrade: item.payGrade,
+        salaryRangeMin: item.salaryRangeMin,
+        salaryRangeMax: item.salaryRangeMax,
+        compaRatio: item.compaRatio,
+        rangePenetration: item.rangePenetration,
+        lastModified: item.lastModified || item.lastModifiedDate || new Date().toISOString(),
         lastModifiedBy: item.lastModifiedBy || userId
       })) || [];
       
@@ -133,34 +158,41 @@ module.exports = cds.service.impl(async function() {
       const results = [];
       
       for (const item of data) {
-        // Prepare update payload for SuccessFactors
+        // Prepare update payload for SuccessFactors Employee Compensation API v1
         const updatePayload = {
           companyId: item.companyId || companyId,
           userId: item.userId || userId,
           formId: item.formId,
-          employeeId: item.employeeId,
-          proposedSalary: item.proposedSalary,
-          meritIncrease: item.meritIncrease,
-          promotionIncrease: item.promotionIncrease,
-          adjustmentIncrease: item.adjustmentIncrease,
-          totalIncrease: item.totalIncrease,
-          newSalary: item.newSalary,
+          employeeId: item.employeeId || item.empId,
+          proposedSalary: item.proposedSalary || item.newSalary,
+          meritIncrease: item.meritIncrease || item.meritPercent,
+          meritIncreaseAmount: item.meritIncreaseAmount || item.meritDollar,
+          promotionIncrease: item.promotionIncrease || item.promotionPercent,
+          promotionIncreaseAmount: item.promotionIncreaseAmount || item.promotionDollar,
+          adjustmentIncrease: item.adjustmentIncrease || item.adjustmentPercent,
+          adjustmentIncreaseAmount: item.adjustmentIncreaseAmount || item.adjustmentDollar,
+          lumpSum: item.lumpSum || item.lumpSumAmount,
+          totalIncrease: item.totalIncrease || item.totalIncreasePercent,
+          totalIncreaseAmount: item.totalIncreaseAmount || item.totalRaise,
+          newSalary: item.newSalary || item.finalSalary,
+          finalSalaryRate: item.finalSalaryRate,
+          totalPay: item.totalPay || item.totalPayIncludingLumpSum,
           effectiveDate: item.effectiveDate,
-          status: item.status,
-          comments: item.comments
+          status: item.status || item.compensationStatus,
+          comments: item.comments || item.notes
         };
 
-        // Call SuccessFactors UPDATE API
+        // Call SuccessFactors Employee Compensation API v1 UPDATE
         let endpoint;
         let method;
         
         if (item.id && item.id !== 'new') {
           // Update existing record
-          endpoint = `/odata/v2/CompensationData('${item.id}')`;
+          endpoint = `/odata/v2/Employee_Compensation('${item.id}')`;
           method = 'PATCH';
         } else {
           // Create new record
-          endpoint = `/odata/v2/CompensationData`;
+          endpoint = `/odata/v2/Employee_Compensation`;
           method = 'POST';
         }
 
@@ -201,8 +233,9 @@ module.exports = cds.service.impl(async function() {
         comments: data.comments
       };
 
-      // Call SuccessFactors POST API
-      const endpoint = `/odata/v2/CompensationData`;
+      // Call SuccessFactors Employee Compensation API v1 POST
+      // API Reference: https://api.sap.com/api/sap-sf-employeeCompensation-v1/resource/Employee_Compensation
+      const endpoint = `/odata/v2/Employee_Compensation`;
       const sfResponse = await callSFAPI(endpoint, 'POST', postPayload);
       
       // Transform and return
@@ -223,7 +256,7 @@ module.exports = cds.service.impl(async function() {
     
     try {
       // First, try to find existing record by employeeId and formId
-      const searchEndpoint = `/odata/v2/CompensationData?$filter=employeeId eq '${data.employeeId}' and formId eq '${data.formId}' and companyId eq '${companyId}'`;
+      const searchEndpoint = `/odata/v2/Employee_Compensation?$filter=employeeId eq '${data.employeeId}' and formId eq '${data.formId}' and companyId eq '${companyId}'`;
       const existingData = await callSFAPI(searchEndpoint);
       
       const existingRecord = existingData.d?.results?.[0];
@@ -242,7 +275,7 @@ module.exports = cds.service.impl(async function() {
           comments: data.comments !== undefined ? data.comments : existingRecord.comments
         };
 
-        const endpoint = `/odata/v2/CompensationData('${existingRecord.id}')`;
+        const endpoint = `/odata/v2/Employee_Compensation('${existingRecord.id}')`;
         const sfResponse = await callSFAPI(endpoint, 'PATCH', updatePayload);
         
         return {
