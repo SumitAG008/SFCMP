@@ -468,6 +468,70 @@ module.exports = cds.service.impl(async function() {
     return assigneeMap[role] || { name: role, photo: "sap-icon://employee", id: "" };
   }
 
+  // Check User RBP (Role-Based Permissions) - Handler for CDS function
+  this.on('checkUserRBP', async (req) => {
+    const { companyId, userId, permission } = req.data;
+    
+    try {
+      // Use rbp-service to check permissions
+      const rbpResult = await rbpService.checkUserRBP(userId, companyId, permission);
+      
+      // Return in the format expected by the CDS service definition
+      return {
+        hasPermission: rbpResult.hasPermission || false,
+        userId: userId,
+        companyId: companyId,
+        permission: permission,
+        role: rbpResult.role || "Unknown",
+        permissionType: rbpResult.permissionType || "None",
+        message: rbpResult.hasPermission 
+          ? `User has ${permission} permission` 
+          : `User does not have ${permission} permission. Required role: ${rbpResult.role || "Unknown"}`
+      };
+    } catch (error) {
+      console.error("Error checking RBP:", error);
+      // Return default deny response on error
+      return {
+        hasPermission: false,
+        userId: userId,
+        companyId: companyId,
+        permission: permission,
+        role: "Unknown",
+        permissionType: "Error",
+        message: `Failed to verify permissions: ${error.message}`
+      };
+    }
+  });
+
+  // Get Employee Data by RBP - Handler for CDS function
+  this.on('getEmployeeDataByRBP', async (req) => {
+    const { companyId, userId } = req.data;
+    
+    try {
+      // Use rbp-service to get employee data
+      const employeeData = await rbpService.getEmployeeDataByRBP(userId, companyId);
+      
+      // Transform to match CDS type definition
+      return employeeData.map(emp => ({
+        employeeId: emp.employeeId || emp.id,
+        employeeName: emp.employeeName || `${emp.firstName || ''} ${emp.lastName || ''}`.trim(),
+        firstName: emp.firstName || "",
+        lastName: emp.lastName || "",
+        email: emp.email || "",
+        photo: emp.photo || "sap-icon://employee",
+        department: emp.department || "",
+        jobTitle: emp.jobTitle || "",
+        position: emp.position || "",
+        managerId: emp.managerId || "",
+        managerName: emp.managerName || ""
+      }));
+    } catch (error) {
+      console.error("Error getting employee data by RBP:", error);
+      // Return empty array on error
+      return [];
+    }
+  });
+
   // Save Workflow Configuration
   this.on('saveWorkflow', async (req) => {
     const { companyId, formId, workflow } = req.data;
