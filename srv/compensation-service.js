@@ -296,6 +296,123 @@ module.exports = cds.service.impl(async function() {
     }
   });
 
+  // GET Workflow Status
+  this.on('getWorkflowStatus', async (req) => {
+    const { companyId, formId } = req.data;
+    
+    try {
+      // In a real implementation, this would call SuccessFactors Workflow API
+      // For now, return mock workflow data
+      // TODO: Integrate with SuccessFactors Workflow API
+      
+      const workflowStatus = {
+        companyId: companyId,
+        formId: formId,
+        overallStatus: "In Progress",
+        currentStep: "Step 2: Manager Review",
+        initiatedBy: "System",
+        initiatedDate: new Date().toLocaleDateString(),
+        steps: [
+          {
+            stepNumber: 1,
+            stepName: "Initiated",
+            status: "Completed",
+            statusState: "Success",
+            assigneeName: "System User",
+            assigneeRole: "Initiator",
+            assigneePhoto: "sap-icon://employee",
+            assigneeId: "system",
+            completedDate: new Date().toLocaleDateString(),
+            comments: "Compensation form created and submitted",
+            dueDate: ""
+          },
+          {
+            stepNumber: 2,
+            stepName: "Manager Review",
+            status: "In Progress",
+            statusState: "Warning",
+            assigneeName: "John Manager",
+            assigneeRole: "Direct Manager",
+            assigneePhoto: "sap-icon://manager",
+            assigneeId: "manager001",
+            completedDate: "",
+            comments: "",
+            dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString()
+          },
+          {
+            stepNumber: 3,
+            stepName: "HR Review",
+            status: "Pending",
+            statusState: "None",
+            assigneeName: "Sarah HR",
+            assigneeRole: "HR Manager",
+            assigneePhoto: "sap-icon://employee",
+            assigneeId: "hr001",
+            completedDate: "",
+            comments: "",
+            dueDate: ""
+          },
+          {
+            stepNumber: 4,
+            stepName: "Finance Approval",
+            status: "Pending",
+            statusState: "None",
+            assigneeName: "Mike Finance",
+            assigneeRole: "Finance Director",
+            assigneePhoto: "sap-icon://money-bills",
+            assigneeId: "finance001",
+            completedDate: "",
+            comments: "",
+            dueDate: ""
+          },
+          {
+            stepNumber: 5,
+            stepName: "Final Approval",
+            status: "Pending",
+            statusState: "None",
+            assigneeName: "Lisa Executive",
+            assigneeRole: "VP of HR",
+            assigneePhoto: "sap-icon://approvals",
+            assigneeId: "exec001",
+            completedDate: "",
+            comments: "",
+            dueDate: ""
+          },
+          {
+            stepNumber: 6,
+            stepName: "Completed",
+            status: "Pending",
+            statusState: "None",
+            completedDate: ""
+          }
+        ],
+        employees: []
+      };
+
+      // Try to get employee data for this form
+      try {
+        const compEndpoint = `/odata/v2/Employee_Compensation?$filter=formId eq '${formId}' and companyId eq '${companyId}'`;
+        const compData = await callSFAPI(compEndpoint);
+        
+        if (compData.d?.results) {
+          workflowStatus.employees = compData.d.results.map(emp => ({
+            employeeId: emp.employeeId,
+            employeeName: emp.employeeName || `${emp.firstName || ''} ${emp.lastName || ''}`.trim(),
+            photo: emp.photo || "sap-icon://employee",
+            finalSalary: emp.finalSalary || emp.newSalary,
+            status: emp.status || "Pending"
+          }));
+        }
+      } catch (error) {
+        console.log("Could not load employee data for workflow:", error.message);
+      }
+
+      return workflowStatus;
+    } catch (error) {
+      req.error(500, `Failed to fetch workflow status: ${error.message}`);
+    }
+  });
+
   // Standard OData CRUD operations (for direct API calls from SuccessFactors)
   this.on('READ', CompensationWorksheet, async (req) => {
     const query = req.query;

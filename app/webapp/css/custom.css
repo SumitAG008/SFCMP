@@ -25,3 +25,64 @@
     height: auto !important;
     min-height: 100vh !important;
 }
+
+/* Workflow Visualization Styles */
+.workflow-container {
+    width: 100%;
+    padding: 1rem;
+}
+
+.workflow-step {
+    position: relative;
+    padding: 1.5rem;
+    border-left: 4px solid #0070f2;
+    background-color: #f7f7f7;
+    border-radius: 4px;
+    margin-left: 2rem;
+}
+
+.workflow-step-content {
+    width: 100%;
+}
+
+.workflow-connector {
+    margin: 0.5rem 0;
+    padding: 0.5rem;
+}
+
+.workflow-icon-initiated {
+    color: #28a745;
+}
+
+.workflow-icon-pending {
+    color: #ffc107;
+}
+
+.workflow-icon-completed {
+    color: #28a745;
+}
+
+.workflow-icon-in-progress {
+    color: #0070f2;
+}
+
+/* Step status colors */
+.workflow-step[data-status="completed"] {
+    border-left-color: #28a745;
+    background-color: #d4edda;
+}
+
+.workflow-step[data-status="in-progress"] {
+    border-left-color: #0070f2;
+    background-color: #cfe2ff;
+}
+
+.workflow-step[data-status="pending"] {
+    border-left-color: #6c757d;
+    background-color: #f7f7f7;
+}
+
+.workflow-step[data-status="rejected"] {
+    border-left-color: #dc3545;
+    background-color: #f8d7da;
+}

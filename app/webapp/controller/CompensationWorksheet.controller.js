@@ -295,7 +295,17 @@ sap.ui.define([
         },
         
         onShowApprovals: function () {
-            MessageBox.information("Approval workflow will be displayed here");
+            var oView = this.getView();
+            var oModel = oView.getModel("compensation");
+            var sCompanyId = oModel.getProperty("/companyId");
+            var sUserId = oModel.getProperty("/userId");
+            var sFormId = oModel.getProperty("/formId");
+
+            // Navigate to workflow visualization page
+            var sWorkflowUrl = "/app/workflow.html?companyId=" + encodeURIComponent(sCompanyId) + 
+                              "&userId=" + encodeURIComponent(sUserId) + 
+                              "&formId=" + encodeURIComponent(sFormId);
+            window.location.href = sWorkflowUrl;
         },
         
         onExport: function () {

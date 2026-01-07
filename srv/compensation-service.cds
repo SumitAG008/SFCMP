@@ -8,4 +8,5 @@ service CompensationService {
   action updateCompensationData(companyId: String, userId: String, data: array of CompensationWorksheet);
   action upsertCompensationData(companyId: String, userId: String, data: CompensationWorksheet) returns CompensationWorksheet;
   action postCompensationData(companyId: String, userId: String, data: CompensationWorksheet) returns CompensationWorksheet;
+  function getWorkflowStatus(companyId: String, formId: String) returns WorkflowStatus;
 }
