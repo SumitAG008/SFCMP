@@ -503,28 +503,31 @@ sap.ui.define([
                 this.getView().setModel(oWorkflowConfigModel, "workflowConfig");
             }
             
-            // Create dialog if not exists
-            if (!this._oWorkflowConfigDialog) {
-                // Load fragment - UI5 will automatically load required libraries
-                Fragment.load({
-                    id: oView.getId(),
-                    name: "com.sap.sf.compensation.view.WorkflowConfigDialog",
-                    controller: this
-                }).then(function (oDialog) {
-                    oView.addDependent(oDialog);
-                    this._oWorkflowConfigDialog = oDialog;
-                    this._oWorkflowConfigDialog.open();
-                }.bind(this)).catch(function(error) {
-                    console.error("Error loading workflow config dialog:", error);
-                    MessageBox.error("Failed to load workflow configuration dialog: " + (error.message || "Unknown error"));
-                });
-            } else {
-                this._oWorkflowConfigDialog.open();
+            // Destroy existing dialog if it exists to avoid duplicate IDs
+            if (this._oWorkflowConfigDialog) {
+                this._oWorkflowConfigDialog.destroy();
+                this._oWorkflowConfigDialog = null;
             }
+            
+            // Load fragment - UI5 will automatically load required libraries
+            Fragment.load({
+                id: oView.getId(),
+                name: "com.sap.sf.compensation.view.WorkflowConfigDialog",
+                controller: this
+            }).then(function (oDialog) {
+                oView.addDependent(oDialog);
+                this._oWorkflowConfigDialog = oDialog;
+                this._oWorkflowConfigDialog.open();
+            }.bind(this)).catch(function(error) {
+                console.error("Error loading workflow config dialog:", error);
+                MessageBox.error("Failed to load workflow configuration dialog: " + (error.message || "Unknown error"));
+            });
         },
         
         onCloseWorkflowConfigDialog: function () {
-            this._oWorkflowConfigDialog.close();
+            if (this._oWorkflowConfigDialog) {
+                this._oWorkflowConfigDialog.close();
+            }
         },
         
         onAddWorkflowStep: function () {
@@ -557,24 +560,25 @@ sap.ui.define([
             oView.setModel(oStepEditModel, "workflowStepEdit");
             this._iEditingStepIndex = iStepIndex;
             
-            // Create dialog if not exists
-            if (!this._oWorkflowStepEditDialog) {
-                // Load fragment - UI5 will automatically load required libraries
-                Fragment.load({
-                    id: oView.getId(),
-                    name: "com.sap.sf.compensation.view.WorkflowStepEditDialog",
-                    controller: this
-                }).then(function (oDialog) {
-                    oView.addDependent(oDialog);
-                    this._oWorkflowStepEditDialog = oDialog;
-                    this._oWorkflowStepEditDialog.open();
-                }.bind(this)).catch(function(error) {
-                    console.error("Error loading step edit dialog:", error);
-                    MessageBox.error("Failed to load step edit dialog: " + (error.message || "Unknown error"));
-                });
-            } else {
-                this._oWorkflowStepEditDialog.open();
+            // Destroy existing dialog if it exists to avoid duplicate IDs
+            if (this._oWorkflowStepEditDialog) {
+                this._oWorkflowStepEditDialog.destroy();
+                this._oWorkflowStepEditDialog = null;
             }
+            
+            // Load fragment - UI5 will automatically load required libraries
+            Fragment.load({
+                id: oView.getId(),
+                name: "com.sap.sf.compensation.view.WorkflowStepEditDialog",
+                controller: this
+            }).then(function (oDialog) {
+                oView.addDependent(oDialog);
+                this._oWorkflowStepEditDialog = oDialog;
+                this._oWorkflowStepEditDialog.open();
+            }.bind(this)).catch(function(error) {
+                console.error("Error loading step edit dialog:", error);
+                MessageBox.error("Failed to load step edit dialog: " + (error.message || "Unknown error"));
+            });
         },
         
         onSaveWorkflowStepEdit: function () {
@@ -594,7 +598,9 @@ sap.ui.define([
         },
         
         onCloseWorkflowStepEditDialog: function () {
-            this._oWorkflowStepEditDialog.close();
+            if (this._oWorkflowStepEditDialog) {
+                this._oWorkflowStepEditDialog.close();
+            }
         },
         
         onDeleteWorkflowStep: function (oEvent) {

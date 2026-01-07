@@ -133,7 +133,7 @@
                     <!-- Advanced Settings Tab -->
                     <IconTabFilter text="Advanced Settings" icon="sap-icon://action-settings">
                         <VBox class="sapUiSmallMargin">
-                            <Panel headerText="Workflow Rules & Conditions" expandable="true" expanded="true" class="sapUiNoContentPadding">
+                            <Panel headerText="Workflow Rules &amp; Conditions" expandable="true" expanded="true" class="sapUiNoContentPadding">
                                 <form:SimpleForm layout="ResponsiveGridLayout" editable="true">
                                     <form:content>
                                         <Label text="Auto-Approval Threshold"/>
