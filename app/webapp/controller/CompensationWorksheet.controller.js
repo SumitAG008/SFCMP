@@ -28,6 +28,14 @@ sap.ui.define([
             if (!oModel.getProperty("/companyId")) {
                 oModel.setProperty("/companyId", "SFHUB003674");
             }
+            
+            // Focus on User ID field if empty
+            setTimeout(function() {
+                var oUserIdInput = oView.byId("userId");
+                if (oUserIdInput && !oModel.getProperty("/userId")) {
+                    oUserIdInput.focus();
+                }
+            }, 500);
         },
 
         onRefresh: function () {
