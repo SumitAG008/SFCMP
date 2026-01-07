@@ -7,7 +7,7 @@
     <script id="sap-ui-bootstrap"
         src="https://sapui5.hana.ondemand.com/resources/sap-ui-core.js"
         data-sap-ui-theme="sap_fiori_3"
-        data-sap-ui-libs="sap.m,sap.ui.core"
+        data-sap-ui-libs="sap.m,sap.ui.core,sap.ui.layout"
         data-sap-ui-resourceroots='{"com.sap.sf.compensation": "./"}'
         data-sap-ui-compatVersion="edge"
         data-sap-ui-async="true">
@@ -17,20 +17,60 @@
         sap.ui.getCore().attachInit(function() {
             console.log("=== Workflow UI5 Core Initialized ===");
             
+            // Create model first
+            var oModel = new sap.ui.model.json.JSONModel({
+                companyId: "",
+                userId: "",
+                formId: "",
+                overallStatus: "In Progress",
+                statusState: "Warning",
+                statusIcon: "sap-icon://pending",
+                currentStep: "",
+                initiatedBy: "",
+                initiatedDate: "",
+                steps: [],
+                employees: []
+            });
+            sap.ui.getCore().setModel(oModel, "workflow");
+            console.log("Workflow model created");
+            
+            // Read URL parameters
+            var oUriParams = new URLSearchParams(window.location.search);
+            var sCompanyId = oUriParams.get('companyId') || "";
+            var sUserId = oUriParams.get('userId') || "";
+            var sFormId = oUriParams.get('formId') || "";
+            
+            if (sCompanyId) oModel.setProperty("/companyId", sCompanyId);
+            if (sUserId) oModel.setProperty("/userId", sUserId);
+            if (sFormId) oModel.setProperty("/formId", sFormId);
+            
             // Create view directly
             sap.ui.require([
                 "sap/ui/core/mvc/View",
                 "sap/ui/core/mvc/ViewType"
             ], function(View, ViewType) {
+                console.log("Creating workflow view...");
                 View.create({
                     viewName: "com.sap.sf.compensation.view.WorkflowVisualization",
                     type: ViewType.XML,
                     id: "workflowView"
                 }).then(function(oView) {
+                    console.log("Workflow view created:", oView);
                     oView.placeAt("content");
                     console.log("Workflow view placed");
+                    
+                    // Set model on view
+                    oView.setModel(oModel, "workflow");
+                    console.log("Model set on view");
+                    
+                    // Force rendering
+                    setTimeout(function() {
+                        sap.ui.getCore().applyChanges();
+                        console.log("Changes applied");
+                    }, 100);
                 }).catch(function(error) {
                     console.error("Error creating workflow view:", error);
+                    console.error("Error details:", error.message, error.stack);
                 });
             });
         });

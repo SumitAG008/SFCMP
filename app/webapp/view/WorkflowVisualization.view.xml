@@ -3,7 +3,7 @@
     xmlns="sap.m"
     xmlns:core="sap.ui.core"
     xmlns:f="sap.f"
-    xmlns:form="sap.ui.layout.form"
+    xmlns:layout="sap.ui.layout"
     displayBlock="true"
     height="100%">
     <Page id="workflowPage" title="Compensation Approval Workflow" showNavButton="true" navButtonPress="onNavBack" class="sapUiNoContentPadding">
@@ -15,8 +15,8 @@
             <VBox class="sapUiSmallMargin">
                 <!-- Workflow Header Information -->
                 <Panel headerText="Workflow Information" class="sapUiNoContentPadding">
-                    <form:SimpleForm layout="ResponsiveGridLayout">
-                        <form:content>
+                    <layout:SimpleForm layout="ResponsiveGridLayout">
+                        <layout:content>
                             <Label text="Company ID"/>
                             <Text text="{workflow>/companyId}"/>
                             <Label text="Form ID"/>
@@ -31,8 +31,8 @@
                             <Text text="{workflow>/initiatedBy}"/>
                             <Label text="Initiated Date"/>
                             <Text text="{workflow>/initiatedDate}"/>
-                        </form:content>
-                    </form:SimpleForm>
+                        </layout:content>
+                    </layout:SimpleForm>
                 </Panel>
 
                 <!-- Workflow Process Flow - Vertical Visualization -->
