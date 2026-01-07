@@ -10,11 +10,13 @@
         <headerContent>
             <Button id="refreshBtn" icon="sap-icon://refresh" press="onRefresh" tooltip="Refresh Data"/>
             <Button id="saveBtn" type="Emphasized" icon="sap-icon://save" press="onSave" tooltip="Save Changes"/>
+            <Button id="budgetsBtn" icon="sap-icon://money-bills" press="onShowBudgets" tooltip="Budgets"/>
+            <Button id="approvalsBtn" icon="sap-icon://approvals" press="onShowApprovals" tooltip="Approvals"/>
         </headerContent>
         <content>
             <VBox class="sapUiSmallMargin">
                 <!-- Header Information -->
-                <Panel headerText="Compensation Form Information" class="sapUiNoContentPadding">
+                <Panel headerText="Compensation Plan Information" class="sapUiNoContentPadding">
                     <form:SimpleForm editable="true" layout="ResponsiveGridLayout" labelSpanXL="3" labelSpanL="3" 
                         labelSpanM="3" labelSpanS="12" adjustLabelSpan="false" emptySpanXL="4" emptySpanL="4" 
                         emptySpanM="4" emptySpanS="0" columnsXL="1" columnsL="1" columnsM="1">
@@ -25,155 +27,222 @@
                             <Input id="userId" value="{compensation>/userId}" placeholder="Enter User ID"/>
                             <Label text="Form ID"/>
                             <Input id="formId" value="{compensation>/formId}" placeholder="Enter Form ID"/>
+                            <Label text="Effective Date"/>
+                            <DatePicker id="effectiveDate" value="{compensation>/effectiveDate}" placeholder="Select Date"/>
                         </form:content>
                     </form:SimpleForm>
                 </Panel>
 
-                <!-- Compensation Worksheet Table -->
+                <!-- Summary Information -->
+                <Panel headerText="Summary" class="sapUiNoContentPadding">
+                    <form:SimpleForm layout="ResponsiveGridLayout">
+                        <form:content>
+                            <Label text="Total Employees:"/>
+                            <Text text="{compensation>/totalEmployees}"/>
+                            <Label text="Effective Date:"/>
+                            <Text text="{compensation>/effectiveDate}"/>
+                        </form:content>
+                    </form:SimpleForm>
+                </Panel>
+
+                <!-- Compensation Worksheet Table - Matching SuccessFactors Design -->
                 <Panel headerText="Compensation Worksheet" class="sapUiNoContentPadding" expandable="false">
                     <table:Table id="compensationTable"
                         rows="{compensation>/CompensationWorksheet}"
                         selectionMode="MultiToggle"
-                        visibleRowCount="10"
+                        visibleRowCount="15"
                         enableColumnReordering="true"
-                        class="sapUiSizeCompact">
+                        class="sapUiSizeCompact"
+                        rowHeight="60">
                         <table:extension>
                             <OverflowToolbar>
-                                <Title text="Compensation Data"/>
+                                <Title text="Employee Compensation Data"/>
                                 <ToolbarSpacer/>
-                                <Button icon="sap-icon://add" press="onAddRow" tooltip="Add Row"/>
-                                <Button icon="sap-icon://delete" press="onDeleteRow" tooltip="Delete Selected Rows"/>
+                                <Button icon="sap-icon://add" press="onAddRow" tooltip="Add Employee"/>
+                                <Button icon="sap-icon://delete" press="onDeleteRow" tooltip="Delete Selected"/>
+                                <Button icon="sap-icon://excel-attachment" press="onExport" tooltip="Export to Excel"/>
                             </OverflowToolbar>
                         </table:extension>
                         <table:columns>
-                            <table:Column width="150px">
-                                <Label text="Employee ID"/>
+                            <!-- Employee Information -->
+                            <table:Column width="200px" resizable="true">
+                                <Label text="Employee"/>
                                 <table:template>
-                                    <Input value="{compensation>employeeId}" editable="true"/>
+                                    <HBox alignItems="Center">
+                                        <core:Icon src="sap-icon://employee" size="1.5rem" class="sapUiTinyMarginEnd"/>
+                                        <VBox>
+                                            <Text text="{compensation>employeeName}" fontWeight="Bold"/>
+                                            <Text text="{compensation>employeeId}" class="sapUiTinyMarginTop"/>
+                                        </VBox>
+                                    </HBox>
                                 </table:template>
                             </table:Column>
-                            <table:Column width="200px">
-                                <Label text="Employee Name"/>
+                            <table:Column width="150px" resizable="true">
+                                <Label text="Job Title"/>
                                 <table:template>
-                                    <Input value="{compensation>employeeName}" editable="true"/>
+                                    <Text text="{compensation>jobTitle}"/>
                                 </table:template>
                             </table:Column>
-                            <table:Column width="150px">
-                                <Label text="Position"/>
+                            <table:Column width="150px" resizable="true">
+                                <Label text="Overall Performance"/>
                                 <table:template>
-                                    <Input value="{compensation>position}" editable="true"/>
+                                    <Text text="{compensation>overallPerformanceRating}"/>
                                 </table:template>
                             </table:Column>
-                            <table:Column width="150px">
-                                <Label text="Department"/>
-                                <table:template>
-                                    <Input value="{compensation>department}" editable="true"/>
-                                </table:template>
-                            </table:Column>
-                            <table:Column width="120px">
+                            
+                            <!-- Current Pay Information -->
+                            <table:Column width="130px" resizable="true">
                                 <Label text="Current Salary"/>
                                 <table:template>
                                     <Input value="{compensation>currentSalary}" type="Number" editable="false" 
-                                        textAlign="End">
+                                        textAlign="End" class="sapUiTinyMargin">
                                         <layoutData>
                                             <FlexItemData growFactor="1"/>
                                         </layoutData>
                                     </Input>
                                 </table:template>
                             </table:Column>
-                            <table:Column width="120px">
-                                <Label text="Merit %"/>
-                                <table:template>
-                                    <Input value="{compensation>meritIncrease}" type="Number" editable="true" 
-                                        liveChange="onCalculateTotal" textAlign="End">
-                                        <layoutData>
-                                            <FlexItemData growFactor="1"/>
-                                        </layoutData>
-                                    </Input>
-                                </table:template>
-                            </table:Column>
-                            <table:Column width="120px">
-                                <Label text="Promotion %"/>
-                                <table:template>
-                                    <Input value="{compensation>promotionIncrease}" type="Number" editable="true" 
-                                        liveChange="onCalculateTotal" textAlign="End">
-                                        <layoutData>
-                                            <FlexItemData growFactor="1"/>
-                                        </layoutData>
-                                    </Input>
-                                </table:template>
-                            </table:Column>
-                            <table:Column width="120px">
-                                <Label text="Adjustment %"/>
-                                <table:template>
-                                    <Input value="{compensation>adjustmentIncrease}" type="Number" editable="true" 
-                                        liveChange="onCalculateTotal" textAlign="End">
-                                        <layoutData>
-                                            <FlexItemData growFactor="1"/>
-                                        </layoutData>
-                                    </Input>
-                                </table:template>
-                            </table:Column>
-                            <table:Column width="120px">
-                                <Label text="Total Increase %"/>
-                                <table:template>
-                                    <Input value="{compensation>totalIncrease}" type="Number" editable="false" 
-                                        textAlign="End">
-                                        <layoutData>
-                                            <FlexItemData growFactor="1"/>
-                                        </layoutData>
-                                    </Input>
-                                </table:template>
-                            </table:Column>
-                            <table:Column width="120px">
-                                <Label text="Proposed Salary"/>
-                                <table:template>
-                                    <Input value="{compensation>proposedSalary}" type="Number" editable="true" 
-                                        liveChange="onCalculateFromProposed" textAlign="End">
-                                        <layoutData>
-                                            <FlexItemData growFactor="1"/>
-                                        </layoutData>
-                                    </Input>
-                                </table:template>
-                            </table:Column>
-                            <table:Column width="120px">
-                                <Label text="New Salary"/>
-                                <table:template>
-                                    <Input value="{compensation>newSalary}" type="Number" editable="false" 
-                                        textAlign="End">
-                                        <layoutData>
-                                            <FlexItemData growFactor="1"/>
-                                        </layoutData>
-                                    </Input>
-                                </table:template>
-                            </table:Column>
-                            <table:Column width="100px">
+                            <table:Column width="100px" resizable="true">
                                 <Label text="Currency"/>
                                 <table:template>
-                                    <Input value="{compensation>currency}" editable="true" maxLength="3"/>
+                                    <Text text="{compensation>currencyCode}"/>
                                 </table:template>
                             </table:Column>
-                            <table:Column width="120px">
-                                <Label text="Effective Date"/>
+                            
+                            <!-- Merit with $ and % -->
+                            <table:Column width="120px" resizable="true">
+                                <Label text="Merit"/>
                                 <table:template>
-                                    <DatePicker value="{compensation>effectiveDate}" editable="true"/>
+                                    <VBox>
+                                        <Input value="{compensation>meritIncreaseAmount}" type="Number" 
+                                            editable="true" liveChange="onCalculateTotal" textAlign="End" 
+                                            placeholder="$" class="sapUiTinyMarginBottom">
+                                            <layoutData>
+                                                <FlexItemData growFactor="1"/>
+                                            </layoutData>
+                                        </Input>
+                                        <Input value="{compensation>meritIncrease}" type="Number" 
+                                            editable="true" liveChange="onCalculateTotal" textAlign="End" 
+                                            placeholder="%">
+                                            <layoutData>
+                                                <FlexItemData growFactor="1"/>
+                                            </layoutData>
+                                        </Input>
+                                    </VBox>
                                 </table:template>
                             </table:Column>
-                            <table:Column width="100px">
+                            
+                            <!-- Adjustment with $ and % -->
+                            <table:Column width="120px" resizable="true">
+                                <Label text="Adjustment"/>
+                                <table:template>
+                                    <VBox>
+                                        <Input value="{compensation>adjustmentIncreaseAmount}" type="Number" 
+                                            editable="true" liveChange="onCalculateTotal" textAlign="End" 
+                                            placeholder="$" class="sapUiTinyMarginBottom">
+                                            <layoutData>
+                                                <FlexItemData growFactor="1"/>
+                                            </layoutData>
+                                        </Input>
+                                        <Input value="{compensation>adjustmentIncrease}" type="Number" 
+                                            editable="true" liveChange="onCalculateTotal" textAlign="End" 
+                                            placeholder="%">
+                                            <layoutData>
+                                                <FlexItemData growFactor="1"/>
+                                            </layoutData>
+                                        </Input>
+                                    </VBox>
+                                </table:template>
+                            </table:Column>
+                            
+                            <!-- Lump Sum -->
+                            <table:Column width="120px" resizable="true">
+                                <Label text="Lump Sum"/>
+                                <table:template>
+                                    <Input value="{compensation>lumpSumAmount}" type="Number" 
+                                        editable="true" liveChange="onCalculateTotal" textAlign="End">
+                                        <layoutData>
+                                            <FlexItemData growFactor="1"/>
+                                        </layoutData>
+                                    </Input>
+                                </table:template>
+                            </table:Column>
+                            
+                            <!-- Total Raise -->
+                            <table:Column width="120px" resizable="true">
+                                <Label text="Total Raise"/>
+                                <table:template>
+                                    <Input value="{compensation>totalRaise}" type="Number" editable="false" 
+                                        textAlign="End">
+                                        <layoutData>
+                                            <FlexItemData growFactor="1"/>
+                                        </layoutData>
+                                    </Input>
+                                </table:template>
+                            </table:Column>
+                            
+                            <!-- Total Increase -->
+                            <table:Column width="120px" resizable="true">
+                                <Label text="Total Increase"/>
+                                <table:template>
+                                    <Input value="{compensation>totalIncreaseAmount}" type="Number" 
+                                        editable="false" textAlign="End">
+                                        <layoutData>
+                                            <FlexItemData growFactor="1"/>
+                                        </layoutData>
+                                    </Input>
+                                </table:template>
+                            </table:Column>
+                            
+                            <!-- Final Salary Rate -->
+                            <table:Column width="130px" resizable="true">
+                                <Label text="Final Salary Rate"/>
+                                <table:template>
+                                    <Input value="{compensation>finalSalaryRate}" type="Number" 
+                                        editable="false" textAlign="End">
+                                        <layoutData>
+                                            <FlexItemData growFactor="1"/>
+                                        </layoutData>
+                                    </Input>
+                                </table:template>
+                            </table:Column>
+                            
+                            <!-- Final Salary -->
+                            <table:Column width="130px" resizable="true">
+                                <Label text="Final Salary"/>
+                                <table:template>
+                                    <Input value="{compensation>finalSalary}" type="Number" 
+                                        editable="true" liveChange="onCalculateFromFinal" textAlign="End">
+                                        <layoutData>
+                                            <FlexItemData growFactor="1"/>
+                                        </layoutData>
+                                    </Input>
+                                </table:template>
+                            </table:Column>
+                            
+                            <!-- Total Pay (Including Lump Sum) -->
+                            <table:Column width="150px" resizable="true">
+                                <Label text="Total Pay (Including Lump Sum)"/>
+                                <table:template>
+                                    <Input value="{compensation>totalPayIncludingLumpSum}" type="Number" 
+                                        editable="false" textAlign="End" fontWeight="Bold">
+                                        <layoutData>
+                                            <FlexItemData growFactor="1"/>
+                                        </layoutData>
+                                    </Input>
+                                </table:template>
+                            </table:Column>
+                            
+                            <!-- Status -->
+                            <table:Column width="100px" resizable="true">
                                 <Label text="Status"/>
                                 <table:template>
-                                    <Select selectedKey="{compensation>status}" editable="true">
+                                    <Select selectedKey="{compensation>compensationStatus}" editable="true">
                                         <core:Item key="Draft" text="Draft"/>
                                         <core:Item key="Pending" text="Pending"/>
                                         <core:Item key="Approved" text="Approved"/>
-                                        <core:Item key="Rejected" text="Rejected"/>
+                                        <core:Item key="Completed" text="Completed"/>
                                     </Select>
-                                </table:template>
-                            </table:Column>
-                            <table:Column width="200px">
-                                <Label text="Comments"/>
-                                <table:template>
-                                    <Input value="{compensation>comments}" editable="true"/>
                                 </table:template>
                             </table:Column>
                         </table:columns>
