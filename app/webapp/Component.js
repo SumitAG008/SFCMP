@@ -8,7 +8,8 @@ sap.ui.define([
 
     return UIComponent.extend("com.sap.sf.compensation.Component", {
         metadata: {
-            manifest: "json"
+            manifest: "json",
+            interfaces: ["sap.ui.core.IAsyncContentCreation"]
         },
 
         init: function () {

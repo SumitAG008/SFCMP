@@ -17,23 +17,23 @@
         sap.ui.getCore().attachInit(function() {
             // Create component asynchronously using Component.create()
             sap.ui.require([
-                "sap/ui/core/Component"
-            ], function(Component) {
-                // Create component asynchronously
+                "sap/ui/core/Component",
+                "sap/ui/core/ComponentContainer"
+            ], function(Component, ComponentContainer) {
+                // Create component asynchronously - this is the correct way
                 Component.create({
                     name: "com.sap.sf.compensation",
-                    id: "compensation"
+                    id: "compensation",
+                    async: true
                 }).then(function(oComponent) {
                     // Create container and place component
-                    sap.ui.require([
-                        "sap/ui/core/ComponentContainer"
-                    ], function(ComponentContainer) {
-                        var oContainer = new ComponentContainer({
-                            component: oComponent,
-                            id: "compensationContainer"
-                        });
-                        oContainer.placeAt("content");
+                    var oContainer = new ComponentContainer({
+                        component: oComponent,
+                        id: "compensationContainer"
                     });
+                    oContainer.placeAt("content");
+                }).catch(function(error) {
+                    console.error("Error creating component:", error);
                 });
             });
         });
