@@ -468,7 +468,7 @@ module.exports = cds.service.impl(async function() {
     return assigneeMap[role] || { name: role, photo: "sap-icon://employee", id: "" };
   }
 
-  // Check User RBP (Role-Based Permissions) - Handler for CDS function
+  // Check User RBP (Role-Based Permissions) - Handler for CDS action
   this.on('checkUserRBP', async (req) => {
     const { companyId, userId, permission } = req.data;
     
@@ -503,7 +503,7 @@ module.exports = cds.service.impl(async function() {
     }
   });
 
-  // Get Employee Data by RBP - Handler for CDS function
+  // Get Employee Data by RBP - Handler for CDS action
   this.on('getEmployeeDataByRBP', async (req) => {
     const { companyId, userId } = req.data;
     
