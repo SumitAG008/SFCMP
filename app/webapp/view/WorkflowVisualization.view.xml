@@ -6,7 +6,7 @@
     xmlns:form="sap.ui.layout.form"
     displayBlock="true"
     height="100%">
-    <Page id="workflowPage" title="Compensation Approval Workflow" showNavButton="true" navButtonPress="onNavBack" class="sapUiNoContentPadding">
+    <Page id="workflowPage" title="{workflow>/workflowName}" showNavButton="true" navButtonPress="onNavBack" class="sapUiNoContentPadding">
         <headerContent>
             <Button id="refreshWorkflowBtn" icon="sap-icon://refresh" press="onRefresh" tooltip="Refresh Workflow"/>
             <Button id="exportWorkflowBtn" icon="sap-icon://download" press="onExport" tooltip="Export Workflow"/>
@@ -21,6 +21,8 @@
                             <Text text="{workflow>/companyId}"/>
                             <Label text="Form ID"/>
                             <Text text="{workflow>/formId}"/>
+                            <Label text="Workflow Name"/>
+                            <Text text="{workflow>/workflowName}" class="sapUiTextBold"/>
                             <Label text="Workflow Status"/>
                             <ObjectStatus text="{workflow>/overallStatus}" 
                                 state="{workflow>/statusState}" 
@@ -35,220 +37,111 @@
                     </form:SimpleForm>
                 </Panel>
 
-                <!-- Workflow Process Flow - Vertical Visualization -->
+                <!-- Dynamic Workflow Process Flow - Vertical Visualization -->
                 <Panel headerText="Approval Workflow Process" class="sapUiNoContentPadding">
-                    <VBox class="sapUiMediumMargin">
-                        <!-- Workflow Steps Container -->
-                        <VBox id="workflowStepsContainer" class="workflow-container">
-                            <!-- Step 1: Initiated -->
-                            <HBox class="workflow-step sapUiMediumMarginBottom">
-                                <VBox class="workflow-step-content">
-                                    <HBox alignItems="Center" class="sapUiSmallMarginBottom">
-                                        <core:Icon src="sap-icon://initiative" size="2rem" class="sapUiTinyMarginEnd workflow-icon-initiated"/>
-                                        <VBox>
-                                            <Title text="Step 1: Initiated" level="H4"/>
-                                            <Text text="Compensation form created and submitted" class="sapUiTinyMarginTop"/>
-                                        </VBox>
-                                    </HBox>
-                                    <HBox alignItems="Center" class="sapUiSmallMarginTop">
-                                        <Avatar src="{workflow>/steps/0/assigneePhoto}" 
-                                            displaySize="M" 
-                                            displayShape="Circle"
-                                            class="sapUiTinyMarginEnd"/>
-                                        <VBox>
-                                            <Text text="{workflow>/steps/0/assigneeName}" class="sapUiTextBold"/>
-                                            <Text text="{workflow>/steps/0/assigneeRole}" class="sapUiTinyMarginTop"/>
-                                            <ObjectStatus text="{workflow>/steps/0/status}" 
-                                                state="{workflow>/steps/0/statusState}"
-                                                class="sapUiTinyMarginTop"/>
-                                        </VBox>
-                                        <Text text="{workflow>/steps/0/completedDate}" class="sapUiSmallMarginBegin"/>
-                                    </HBox>
-                                </VBox>
-                            </HBox>
-
-                            <!-- Connector Arrow -->
-                            <HBox justifyContent="Center" class="workflow-connector">
-                                <core:Icon src="sap-icon://arrow-down" size="2rem" color="#0070f2"/>
-                            </HBox>
-
-                            <!-- Step 2: Manager Review -->
-                            <HBox class="workflow-step sapUiMediumMarginBottom">
-                                <VBox class="workflow-step-content">
-                                    <HBox alignItems="Center" class="sapUiSmallMarginBottom">
-                                        <core:Icon src="sap-icon://manager" size="2rem" class="sapUiTinyMarginEnd workflow-icon-pending"/>
-                                        <VBox>
-                                            <Title text="Step 2: Manager Review" level="H4"/>
-                                            <Text text="Direct manager reviews and approves compensation" class="sapUiTinyMarginTop"/>
-                                        </VBox>
-                                    </HBox>
-                                    <HBox alignItems="Center" class="sapUiSmallMarginTop">
-                                        <Avatar src="{workflow>/steps/1/assigneePhoto}" 
-                                            displaySize="M" 
-                                            displayShape="Circle"
-                                            class="sapUiTinyMarginEnd"/>
-                                        <VBox>
-                                            <Text text="{workflow>/steps/1/assigneeName}" class="sapUiTextBold"/>
-                                            <Text text="{workflow>/steps/1/assigneeRole}" class="sapUiTinyMarginTop"/>
-                                            <ObjectStatus text="{workflow>/steps/1/status}" 
-                                                state="{workflow>/steps/1/statusState}"
-                                                class="sapUiTinyMarginTop"/>
-                                        </VBox>
-                                        <Text text="{workflow>/steps/1/completedDate}" class="sapUiSmallMarginBegin"/>
-                                    </HBox>
-                                    <TextArea value="{workflow>/steps/1/comments}" 
-                                        placeholder="Manager comments..." 
-                                        rows="2"
-                                        editable="false"
-                                        class="sapUiSmallMarginTop"/>
-                                </VBox>
-                            </HBox>
-
-                            <!-- Connector Arrow -->
-                            <HBox justifyContent="Center" class="workflow-connector">
-                                <core:Icon src="sap-icon://arrow-down" size="2rem" color="#0070f2"/>
-                            </HBox>
-
-                            <!-- Step 3: HR Review -->
-                            <HBox class="workflow-step sapUiMediumMarginBottom">
-                                <VBox class="workflow-step-content">
-                                    <HBox alignItems="Center" class="sapUiSmallMarginBottom">
-                                        <core:Icon src="sap-icon://employee" size="2rem" class="sapUiTinyMarginEnd workflow-icon-pending"/>
-                                        <VBox>
-                                            <Title text="Step 3: HR Review" level="H4"/>
-                                            <Text text="HR reviews compensation for compliance and policy" class="sapUiTinyMarginTop"/>
-                                        </VBox>
-                                    </HBox>
-                                    <HBox alignItems="Center" class="sapUiSmallMarginTop">
-                                        <Avatar src="{workflow>/steps/2/assigneePhoto}" 
-                                            displaySize="M" 
-                                            displayShape="Circle"
-                                            class="sapUiTinyMarginEnd"/>
-                                        <VBox>
-                                            <Text text="{workflow>/steps/2/assigneeName}" class="sapUiTextBold"/>
-                                            <Text text="{workflow>/steps/2/assigneeRole}" class="sapUiTinyMarginTop"/>
-                                            <ObjectStatus text="{workflow>/steps/2/status}" 
-                                                state="{workflow>/steps/2/statusState}"
-                                                class="sapUiTinyMarginTop"/>
-                                        </VBox>
-                                        <Text text="{workflow>/steps/2/completedDate}" class="sapUiSmallMarginBegin"/>
-                                    </HBox>
-                                    <TextArea value="{workflow>/steps/2/comments}" 
-                                        placeholder="HR comments..." 
-                                        rows="2"
-                                        editable="false"
-                                        class="sapUiSmallMarginTop"/>
-                                </VBox>
-                            </HBox>
-
-                            <!-- Connector Arrow -->
-                            <HBox justifyContent="Center" class="workflow-connector">
-                                <core:Icon src="sap-icon://arrow-down" size="2rem" color="#0070f2"/>
-                            </HBox>
-
-                            <!-- Step 4: Finance Approval -->
-                            <HBox class="workflow-step sapUiMediumMarginBottom">
-                                <VBox class="workflow-step-content">
-                                    <HBox alignItems="Center" class="sapUiSmallMarginBottom">
-                                        <core:Icon src="sap-icon://money-bills" size="2rem" class="sapUiTinyMarginEnd workflow-icon-pending"/>
-                                        <VBox>
-                                            <Title text="Step 4: Finance Approval" level="H4"/>
-                                            <Text text="Finance reviews budget and approves compensation" class="sapUiTinyMarginTop"/>
-                                        </VBox>
-                                    </HBox>
-                                    <HBox alignItems="Center" class="sapUiSmallMarginTop">
-                                        <Avatar src="{workflow>/steps/3/assigneePhoto}" 
-                                            displaySize="M" 
-                                            displayShape="Circle"
-                                            class="sapUiTinyMarginEnd"/>
-                                        <VBox>
-                                            <Text text="{workflow>/steps/3/assigneeName}" class="sapUiTextBold"/>
-                                            <Text text="{workflow>/steps/3/assigneeRole}" class="sapUiTinyMarginTop"/>
-                                            <ObjectStatus text="{workflow>/steps/3/status}" 
-                                                state="{workflow>/steps/3/statusState}"
-                                                class="sapUiTinyMarginTop"/>
-                                        </VBox>
-                                        <Text text="{workflow>/steps/3/completedDate}" class="sapUiSmallMarginBegin"/>
-                                    </HBox>
-                                    <TextArea value="{workflow>/steps/3/comments}" 
-                                        placeholder="Finance comments..." 
-                                        rows="2"
-                                        editable="false"
-                                        class="sapUiSmallMarginTop"/>
-                                </VBox>
-                            </HBox>
-
-                            <!-- Connector Arrow -->
-                            <HBox justifyContent="Center" class="workflow-connector">
-                                <core:Icon src="sap-icon://arrow-down" size="2rem" color="#0070f2"/>
-                            </HBox>
-
-                            <!-- Step 5: Final Approval -->
-                            <HBox class="workflow-step sapUiMediumMarginBottom">
-                                <VBox class="workflow-step-content">
-                                    <HBox alignItems="Center" class="sapUiSmallMarginBottom">
-                                        <core:Icon src="sap-icon://approvals" size="2rem" class="sapUiTinyMarginEnd workflow-icon-pending"/>
-                                        <VBox>
-                                            <Title text="Step 5: Final Approval" level="H4"/>
-                                            <Text text="Senior management final approval" class="sapUiTinyMarginTop"/>
-                                        </VBox>
-                                    </HBox>
-                                    <HBox alignItems="Center" class="sapUiSmallMarginTop">
-                                        <Avatar src="{workflow>/steps/4/assigneePhoto}" 
-                                            displaySize="M" 
-                                            displayShape="Circle"
-                                            class="sapUiTinyMarginEnd"/>
-                                        <VBox>
-                                            <Text text="{workflow>/steps/4/assigneeName}" class="sapUiTextBold"/>
-                                            <Text text="{workflow>/steps/4/assigneeRole}" class="sapUiTinyMarginTop"/>
-                                            <ObjectStatus text="{workflow>/steps/4/status}" 
-                                                state="{workflow>/steps/4/statusState}"
-                                                class="sapUiTinyMarginTop"/>
-                                        </VBox>
-                                        <Text text="{workflow>/steps/4/completedDate}" class="sapUiSmallMarginBegin"/>
-                                    </HBox>
-                                    <TextArea value="{workflow>/steps/4/comments}" 
-                                        placeholder="Final approval comments..." 
-                                        rows="2"
-                                        editable="false"
-                                        class="sapUiSmallMarginTop"/>
-                                </VBox>
-                            </HBox>
-
-                            <!-- Connector Arrow -->
-                            <HBox justifyContent="Center" class="workflow-connector">
-                                <core:Icon src="sap-icon://arrow-down" size="2rem" color="#28a745"/>
-                            </HBox>
-
-                            <!-- Step 6: Completed -->
-                            <HBox class="workflow-step sapUiMediumMarginBottom">
-                                <VBox class="workflow-step-content">
-                                    <HBox alignItems="Center" class="sapUiSmallMarginBottom">
-                                        <core:Icon src="sap-icon://accept" size="2rem" class="sapUiTinyMarginEnd workflow-icon-completed"/>
-                                        <VBox>
-                                            <Title text="Step 6: Completed" level="H4"/>
-                                            <Text text="Compensation approved and processed" class="sapUiTinyMarginTop"/>
-                                        </VBox>
-                                    </HBox>
-                                    <HBox alignItems="Center" class="sapUiSmallMarginTop">
-                                        <core:Icon src="sap-icon://complete" size="2rem" color="#28a745" class="sapUiTinyMarginEnd"/>
-                                        <VBox>
-                                            <Text text="Workflow Completed" class="sapUiTextBold"/>
-                                            <Text text="{workflow>/steps/5/completedDate}" class="sapUiTinyMarginTop"/>
-                                            <ObjectStatus text="Completed" 
-                                                state="Success"
-                                                class="sapUiTinyMarginTop"/>
-                                        </VBox>
-                                    </HBox>
-                                </VBox>
-                            </HBox>
+                    <VBox class="sapUiMediumMargin" alignItems="Center">
+                        <VBox id="workflowStepsContainer" class="workflow-container" width="100%">
+                            <!-- Dynamic Workflow Steps - Generated from Real Data -->
+                            <VBox items="{workflow>/steps}" class="workflow-steps-list">
+                                <items>
+                                    <!-- Workflow Step Card -->
+                                    <VBox class="workflow-step-card sapUiMediumMarginBottom">
+                                        <HBox class="workflow-step sapUiSmallMargin" alignItems="Start">
+                                            <VBox class="workflow-step-content" width="100%">
+                                                <!-- Step Header -->
+                                                <HBox alignItems="Center" class="sapUiSmallMarginBottom">
+                                                    <core:Icon src="{workflow>icon}" 
+                                                        size="2rem" 
+                                                        class="sapUiTinyMarginEnd workflow-icon-{workflow>statusState}"
+                                                        color="{= ${workflow>statusState} === 'Success' ? '#28a745' : (${workflow>statusState} === 'Warning' ? '#ffc107' : '#6c757d') }"/>
+                                                    <VBox>
+                                                        <Title text="Step {workflow>stepNumber}: {workflow>stepName}" level="H4"/>
+                                                        <Text text="{workflow>description}" class="sapUiTinyMarginTop" visible="{= !!${workflow>description} }"/>
+                                                    </VBox>
+                                                    <ToolbarSpacer/>
+                                                    <ObjectStatus text="{workflow>status}" 
+                                                        state="{workflow>statusState}"
+                                                        icon="{= ${workflow>statusState} === 'Success' ? 'sap-icon://accept' : (${workflow>statusState} === 'Warning' ? 'sap-icon://pending' : 'sap-icon://circle-task') }"/>
+                                                </HBox>
+                                                
+                                                <!-- Assignee Information -->
+                                                <HBox alignItems="Center" class="sapUiSmallMarginTop">
+                                                    <f:Avatar src="{workflow>assigneePhoto}" 
+                                                        displaySize="M" 
+                                                        displayShape="Circle"
+                                                        class="sapUiTinyMarginEnd"
+                                                        visible="{= !!${workflow>assigneePhoto} }"/>
+                                                    <VBox class="sapUiSmallMarginBegin">
+                                                        <Text text="{workflow>assigneeName}" class="sapUiTextBold" visible="{= !!${workflow>assigneeName} }"/>
+                                                        <Text text="{workflow>assigneeRole}" class="sapUiTinyMarginTop" visible="{= !!${workflow>assigneeRole} }"/>
+                                                        <HBox class="sapUiTinyMarginTop" visible="{= !!${workflow>dueDays} }">
+                                                            <Text text="Due: " class="sapUiTinyMarginEnd"/>
+                                                            <Text text="{workflow>dueDays} days" class="sapUiTextBold"/>
+                                                        </HBox>
+                                                    </VBox>
+                                                    <ToolbarSpacer/>
+                                                    <VBox alignItems="End">
+                                                        <Text text="Completed: {workflow>completedDate}" 
+                                                            visible="{= !!${workflow>completedDate} }" 
+                                                            class="sapUiTinyMarginTop"/>
+                                                        <Text text="Due Date: {workflow>dueDate}" 
+                                                            visible="{= !!${workflow>dueDate} }" 
+                                                            class="sapUiTinyMarginTop"/>
+                                                    </VBox>
+                                                </HBox>
+                                                
+                                                <!-- Comments Section -->
+                                                <TextArea value="{workflow>comments}" 
+                                                    placeholder="No comments yet..." 
+                                                    rows="2"
+                                                    editable="false"
+                                                    class="sapUiSmallMarginTop"
+                                                    visible="{= !!${workflow>comments} || ${workflow>statusState} === 'Warning' }"/>
+                                                
+                                                <!-- Action Buttons (if step is in progress) -->
+                                                <HBox class="sapUiSmallMarginTop" visible="{= ${workflow>statusState} === 'Warning' }">
+                                                    <Button text="Approve" 
+                                                        type="Emphasized" 
+                                                        icon="sap-icon://accept" 
+                                                        press="onApproveStep"
+                                                        class="sapUiTinyMarginEnd"/>
+                                                    <Button text="Reject" 
+                                                        type="Reject" 
+                                                        icon="sap-icon://decline" 
+                                                        press="onRejectStep"
+                                                        class="sapUiTinyMarginEnd"/>
+                                                    <Button text="Add Comment" 
+                                                        icon="sap-icon://comment" 
+                                                        press="onAddComment"
+                                                        type="Transparent"/>
+                                                </HBox>
+                                            </VBox>
+                                        </HBox>
+                                        
+                                        <!-- Connector Arrow (show between steps, not after last) -->
+                                        <HBox justifyContent="Center" class="workflow-connector" visible="{= ${workflow>stepNumber} !== ${workflow>/steps/length} }">
+                                            <core:Icon src="sap-icon://arrow-down" 
+                                                size="2rem" 
+                                                color="{= ${workflow>statusState} === 'Success' ? '#28a745' : '#0070f2' }"/>
+                                        </HBox>
+                                    </VBox>
+                                </items>
+                            </VBox>
+                            
+                            <!-- Empty State -->
+                            <VBox visible="{= !${workflow>/steps} || ${workflow>/steps/length} === 0 }" alignItems="Center" class="sapUiLargeMargin">
+                                <core:Icon src="sap-icon://workflow-tasks" size="4rem" class="sapUiMediumMarginBottom"/>
+                                <Title text="No Workflow Steps Configured" level="H3"/>
+                                <Text text="Please configure workflow steps in the Workflow Builder" class="sapUiSmallMarginTop"/>
+                                <Button text="Configure Workflow" icon="sap-icon://settings" press="onConfigureWorkflow" type="Emphasized" class="sapUiSmallMarginTop"/>
+                            </VBox>
                         </VBox>
                     </VBox>
                 </Panel>
 
                 <!-- Employee Compensation Summary -->
-                <Panel headerText="Compensation Summary" expandable="true" expanded="false">
-                    <List items="{workflow>/employees}">
+                <Panel headerText="Compensation Summary" expandable="true" expanded="false" class="sapUiSmallMarginTop">
+                    <List items="{workflow>/employees}" visible="{= ${workflow>/employees/length} > 0 }">
                         <StandardListItem
                             title="{workflow>employeeName}"
                             description="{workflow>employeeId}"
@@ -256,6 +149,9 @@
                             info="{workflow>finalSalary}"
                             infoState="Success"/>
                     </List>
+                    <VBox visible="{= !${workflow>/employees} || ${workflow>/employees/length} === 0 }" alignItems="Center" class="sapUiMediumMargin">
+                        <Text text="No employee data available"/>
+                    </VBox>
                 </Panel>
             </VBox>
         </content>

@@ -14,87 +14,25 @@ sap.ui.define([
             var sUserId = oUriParams.get('userId') || "";
             var sFormId = oUriParams.get('formId') || "";
 
-            // Initialize workflow model
+            // Initialize workflow model with empty data - will be loaded from backend
             var oWorkflowModel = new JSONModel({
                 companyId: sCompanyId,
                 userId: sUserId,
                 formId: sFormId,
-                overallStatus: "In Progress",
-                statusState: "Warning",
+                workflowName: "",
+                overallStatus: "Loading...",
+                statusState: "None",
                 statusIcon: "sap-icon://pending",
-                currentStep: "Step 2: Manager Review",
+                currentStep: "",
                 initiatedBy: sUserId || "System",
-                initiatedDate: new Date().toLocaleDateString(),
-                steps: [
-                    {
-                        stepNumber: 1,
-                        stepName: "Initiated",
-                        status: "Completed",
-                        statusState: "Success",
-                        assigneeName: sUserId || "System User",
-                        assigneeRole: "Initiator",
-                        assigneePhoto: "sap-icon://employee",
-                        completedDate: new Date().toLocaleDateString(),
-                        comments: "Compensation form created and submitted"
-                    },
-                    {
-                        stepNumber: 2,
-                        stepName: "Manager Review",
-                        status: "In Progress",
-                        statusState: "Warning",
-                        assigneeName: "John Manager",
-                        assigneeRole: "Direct Manager",
-                        assigneePhoto: "sap-icon://manager",
-                        completedDate: "",
-                        comments: ""
-                    },
-                    {
-                        stepNumber: 3,
-                        stepName: "HR Review",
-                        status: "Pending",
-                        statusState: "None",
-                        assigneeName: "Sarah HR",
-                        assigneeRole: "HR Manager",
-                        assigneePhoto: "sap-icon://employee",
-                        completedDate: "",
-                        comments: ""
-                    },
-                    {
-                        stepNumber: 4,
-                        stepName: "Finance Approval",
-                        status: "Pending",
-                        statusState: "None",
-                        assigneeName: "Mike Finance",
-                        assigneeRole: "Finance Director",
-                        assigneePhoto: "sap-icon://money-bills",
-                        completedDate: "",
-                        comments: ""
-                    },
-                    {
-                        stepNumber: 5,
-                        stepName: "Final Approval",
-                        status: "Pending",
-                        statusState: "None",
-                        assigneeName: "Lisa Executive",
-                        assigneeRole: "VP of HR",
-                        assigneePhoto: "sap-icon://approvals",
-                        completedDate: "",
-                        comments: ""
-                    },
-                    {
-                        stepNumber: 6,
-                        stepName: "Completed",
-                        status: "Pending",
-                        statusState: "None",
-                        completedDate: ""
-                    }
-                ],
+                initiatedDate: "",
+                steps: [],
                 employees: []
             });
 
             this.getView().setModel(oWorkflowModel, "workflow");
 
-            // Load workflow data
+            // Load real-time workflow data from backend
             this.loadWorkflowData();
         },
 
@@ -111,14 +49,14 @@ sap.ui.define([
             var sFormId = oModel.getProperty("/formId");
 
             if (!sFormId) {
-                MessageToast.show("No Form ID provided");
+                MessageBox.warning("Form ID is required to load workflow status");
                 return;
             }
 
             // Show busy indicator
             oView.setBusy(true);
 
-            // Call workflow API (you'll need to implement this in backend)
+            // Call workflow API to get real-time workflow status
             var sServiceUrl = "/compensation/CompensationService/getWorkflowStatus";
             var oPayload = {
                 companyId: sCompanyId,
@@ -131,21 +69,77 @@ sap.ui.define([
                 contentType: "application/json",
                 data: JSON.stringify(oPayload),
                 success: function (data) {
-                    if (data && data.steps) {
-                        oModel.setProperty("/steps", data.steps);
-                        oModel.setProperty("/overallStatus", data.overallStatus);
-                        oModel.setProperty("/currentStep", data.currentStep);
-                        oModel.setProperty("/employees", data.employees || []);
+                    if (data) {
+                        // Update model with real-time workflow data
+                        oModel.setProperty("/", data);
+                        MessageToast.show("Workflow data loaded successfully");
+                    } else {
+                        MessageBox.warning("No workflow data found for this form");
                     }
                     oView.setBusy(false);
                 },
                 error: function (error) {
                     console.error("Error loading workflow:", error);
-                    // Use mock data if API fails
-                    MessageToast.show("Using mock workflow data");
+                    var sErrorMsg = error.responseJSON?.error?.message || error.statusText || "Unknown error";
+                    MessageBox.error("Failed to load workflow status: " + sErrorMsg);
                     oView.setBusy(false);
                 }
             });
+        },
+        
+        onApproveStep: function (oEvent) {
+            var oStep = oEvent.getSource().getBindingContext("workflow").getObject();
+            MessageBox.confirm("Approve step: " + oStep.stepName + "?", {
+                title: "Approve Step",
+                actions: [MessageBox.Action.YES, MessageBox.Action.NO],
+                onClose: function (sAction) {
+                    if (sAction === MessageBox.Action.YES) {
+                        // TODO: Call backend API to approve step
+                        MessageToast.show("Step approved (integration pending)");
+                        // Refresh workflow data
+                        this.loadWorkflowData();
+                    }
+                }.bind(this)
+            });
+        },
+        
+        onRejectStep: function (oEvent) {
+            var oStep = oEvent.getSource().getBindingContext("workflow").getObject();
+            MessageBox.confirm("Reject step: " + oStep.stepName + "?", {
+                title: "Reject Step",
+                actions: [MessageBox.Action.YES, MessageBox.Action.NO],
+                onClose: function (sAction) {
+                    if (sAction === MessageBox.Action.YES) {
+                        // TODO: Call backend API to reject step
+                        MessageToast.show("Step rejected (integration pending)");
+                        // Refresh workflow data
+                        this.loadWorkflowData();
+                    }
+                }.bind(this)
+            });
+        },
+        
+        onAddComment: function (oEvent) {
+            var oStep = oEvent.getSource().getBindingContext("workflow").getObject();
+            MessageBox.prompt("Add comment for step: " + oStep.stepName, {
+                title: "Add Comment",
+                actions: [MessageBox.Action.OK, MessageBox.Action.CANCEL],
+                onClose: function (sAction, sComment) {
+                    if (sAction === MessageBox.Action.OK && sComment) {
+                        // TODO: Call backend API to add comment
+                        MessageToast.show("Comment added (integration pending)");
+                        // Refresh workflow data
+                        this.loadWorkflowData();
+                    }
+                }
+            });
+        },
+        
+        onConfigureWorkflow: function () {
+            // Navigate back to compensation worksheet to configure workflow
+            var oRouter = this.getOwnerComponent().getRouter();
+            oRouter.navTo("compensation");
+            // TODO: Open workflow config dialog automatically
         },
 
         onRefresh: function () {

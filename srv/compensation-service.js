@@ -429,6 +429,25 @@ module.exports = cds.service.impl(async function() {
       req.error(500, `Failed to fetch workflow status: ${error.message}`);
     }
   });
+  
+  // Helper function to get assignee data by role
+  function getAssigneeByRole(role, companyId) {
+    // Mock assignee data - in real implementation, fetch from SuccessFactors Employee Central
+    const assigneeMap = {
+      "Initiator": { name: "System User", photo: "https://i.pravatar.cc/150?img=68", id: "system" },
+      "Direct Manager": { name: "John Manager", photo: "https://i.pravatar.cc/150?img=69", id: "manager001" },
+      "HR Manager": { name: "Sarah HR", photo: "https://i.pravatar.cc/150?img=71", id: "hr001" },
+      "Finance Director": { name: "Mike Finance", photo: "https://i.pravatar.cc/150?img=72", id: "finance001" },
+      "VP of HR": { name: "Lisa Executive", photo: "https://i.pravatar.cc/150?img=73", id: "exec001" },
+      "System": { name: "System", photo: "sap-icon://accept", id: "system" }
+    };
+    
+    return assigneeMap[role] || { name: role, photo: "sap-icon://employee", id: "" };
+  }
+    } catch (error) {
+      req.error(500, `Failed to fetch workflow status: ${error.message}`);
+    }
+  });
 
   // Save Workflow Configuration
   this.on('saveWorkflow', async (req) => {

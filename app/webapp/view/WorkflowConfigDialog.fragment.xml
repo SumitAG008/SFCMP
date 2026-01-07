@@ -214,7 +214,7 @@
             </IconTabBar>
         </content>
         <beginButton>
-            <Button text="Save & Activate" type="Emphasized" press="onSaveWorkflowConfig"/>
+            <Button text="Save &amp; Activate" type="Emphasized" press="onSaveWorkflowConfig"/>
         </beginButton>
         <endButton>
             <Button text="Save as Draft" press="onSaveWorkflowDraft"/>
