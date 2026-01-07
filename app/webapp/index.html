@@ -58,6 +58,25 @@
                         });
                         oContainer.placeAt("content");
                         console.log("ComponentContainer placed");
+                        
+                        // Force rendering - check if view is in DOM
+                        setTimeout(function() {
+                            var oViewDomRef = oRootView.getDomRef();
+                            console.log("View DOM ref:", oViewDomRef);
+                            if (!oViewDomRef) {
+                                console.log("View not in DOM, forcing render...");
+                                oRootView.invalidate();
+                                sap.ui.getCore().applyChanges();
+                            } else {
+                                console.log("View is in DOM, checking content...");
+                                var oPage = oRootView.byId("compensationPage");
+                                if (oPage) {
+                                    console.log("Page found:", oPage);
+                                    var oPageDomRef = oPage.getDomRef();
+                                    console.log("Page DOM ref:", oPageDomRef);
+                                }
+                            }
+                        }, 500);
                     } else {
                         // No rootView, create it manually
                         console.log("No rootView in component, creating manually...");
