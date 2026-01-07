@@ -26,6 +26,7 @@ sap.ui.define([
                 CompensationWorksheet: []
             });
             this.setModel(oCompensationModel, "compensation");
-        }
+        },
+        
     });
 });
