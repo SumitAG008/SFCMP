@@ -1,0 +1,55 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta charset="UTF-8">
+    <title>Compensation Worksheet - Simple</title>
+    <script id="sap-ui-bootstrap"
+        src="https://sapui5.hana.ondemand.com/resources/sap-ui-core.js"
+        data-sap-ui-theme="sap_fiori_3"
+        data-sap-ui-libs="sap.m,sap.ui.table,sap.ui.core"
+        data-sap-ui-resourceroots='{"com.sap.sf.compensation": "./"}'
+        data-sap-ui-compatVersion="edge"
+        data-sap-ui-async="false">
+    </script>
+    <link rel="stylesheet" type="text/css" href="css/custom.css">
+</head>
+<body class="sapUiBody" id="content">
+    <script>
+        sap.ui.getCore().attachInit(function() {
+            console.log("UI5 Core initialized");
+            
+            // Create model first
+            var oModel = new sap.ui.model.json.JSONModel({
+                companyId: "SFHUB003674",
+                userId: "",
+                formId: "",
+                effectiveDate: "",
+                totalEmployees: 0,
+                CompensationWorksheet: []
+            });
+            sap.ui.getCore().setModel(oModel, "compensation");
+            console.log("Model created");
+            
+            // Create view directly (no component)
+            sap.ui.require([
+                "sap/ui/core/mvc/View",
+                "sap/ui/core/mvc/ViewType"
+            ], function(View, ViewType) {
+                console.log("Creating view...");
+                View.create({
+                    viewName: "com.sap.sf.compensation.view.CompensationWorksheet",
+                    type: ViewType.XML,
+                    id: "directView"
+                }).then(function(oView) {
+                    console.log("View created:", oView);
+                    oView.placeAt("content");
+                    console.log("View placed in content");
+                }).catch(function(error) {
+                    console.error("Error creating view:", error);
+                });
+            });
+        });
+    </script>
+</body>
+</html>

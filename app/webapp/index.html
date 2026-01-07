@@ -15,14 +15,30 @@
     <link rel="stylesheet" type="text/css" href="css/custom.css">
     <script>
         sap.ui.getCore().attachInit(function() {
-            // Create component asynchronously using Component.create()
+            console.log("=== UI5 Core Initialized ===");
+            
+            // Create model first
+            var oModel = new sap.ui.model.json.JSONModel({
+                companyId: "SFHUB003674",
+                userId: "",
+                formId: "",
+                effectiveDate: "",
+                totalEmployees: 0,
+                CompensationWorksheet: []
+            });
+            sap.ui.getCore().setModel(oModel, "compensation");
+            console.log("Model created and set");
+            
+            // Try component first, fallback to direct view
             sap.ui.require([
                 "sap/ui/core/Component",
                 "sap/ui/core/ComponentContainer",
                 "sap/ui/core/mvc/View",
                 "sap/ui/core/mvc/ViewType"
             ], function(Component, ComponentContainer, View, ViewType) {
-                // Create component asynchronously - this is the correct way
+                console.log("Dependencies loaded");
+                
+                // Try component approach
                 Component.create({
                     name: "com.sap.sf.compensation",
                     id: "compensation",
@@ -30,48 +46,49 @@
                 }).then(function(oComponent) {
                     console.log("Component created:", oComponent);
                     
-                    // Check if rootView exists, if not create it
+                    // Get root view from component
                     var oRootView = oComponent.getRootControl();
-                    if (!oRootView) {
-                        console.log("Root view not found, creating manually...");
+                    console.log("Root view from component:", oRootView);
+                    
+                    if (oRootView) {
+                        // Component has rootView, use ComponentContainer
+                        var oContainer = new ComponentContainer({
+                            component: oComponent,
+                            id: "compensationContainer"
+                        });
+                        oContainer.placeAt("content");
+                        console.log("ComponentContainer placed");
+                    } else {
+                        // No rootView, create it manually
+                        console.log("No rootView in component, creating manually...");
                         return View.create({
                             viewName: "com.sap.sf.compensation.view.CompensationWorksheet",
                             type: ViewType.XML,
-                            id: oComponent.createId("CompensationWorksheet")
+                            id: "manualView"
                         }).then(function(oView) {
-                            oComponent.setRootControl(oView);
-                            return oComponent;
+                            console.log("Manual view created:", oView);
+                            oView.placeAt("content");
+                            // Set view model from component
+                            var oCompModel = oComponent.getModel("compensation");
+                            if (oCompModel) {
+                                oView.setModel(oCompModel, "compensation");
+                            }
+                            console.log("View placed and model set");
                         });
                     }
-                    return oComponent;
-                }).then(function(oComponent) {
-                    // Create container and place component
-                    var oContainer = new ComponentContainer({
-                        component: oComponent,
-                        id: "compensationContainer",
-                        async: true
-                    });
-                    oContainer.placeAt("content");
-                    console.log("Component container placed");
                 }).catch(function(error) {
-                    console.error("Error creating component:", error);
-                    // Fallback: create view directly
+                    console.error("Component creation failed, using direct view:", error);
+                    // Fallback: create view directly without component
                     View.create({
                         viewName: "com.sap.sf.compensation.view.CompensationWorksheet",
                         type: ViewType.XML,
                         id: "fallbackView"
                     }).then(function(oView) {
+                        console.log("Fallback view created:", oView);
                         oView.placeAt("content");
-                        // Create model
-                        var oModel = new sap.ui.model.json.JSONModel({
-                            companyId: "SFHUB003674",
-                            userId: "",
-                            formId: "",
-                            effectiveDate: "",
-                            totalEmployees: 0,
-                            CompensationWorksheet: []
-                        });
-                        sap.ui.getCore().setModel(oModel, "compensation");
+                        console.log("Fallback view placed");
+                    }).catch(function(viewError) {
+                        console.error("View creation also failed:", viewError);
                     });
                 });
             });
