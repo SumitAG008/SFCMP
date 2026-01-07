@@ -194,25 +194,37 @@ sap.ui.define([
                     }
 
                     // Call UPDATE API
-            var sServiceUrl = "/compensation/CompensationService/updateCompensationData";
-            var oPayload = {
-                companyId: sCompanyId,
-                userId: sUserId,
-                data: aData
-            };
+                    var sServiceUrl = "/compensation/CompensationService/updateCompensationData";
+                    var oPayload = {
+                        companyId: sCompanyId,
+                        userId: sUserId,
+                        data: aData
+                    };
 
-            $.ajax({
-                url: sServiceUrl,
-                method: "POST",
-                contentType: "application/json",
-                data: JSON.stringify(oPayload),
-                success: function (response) {
-                    MessageToast.show("Data saved successfully");
-                    oView.setBusy(false);
+                    $.ajax({
+                        url: sServiceUrl,
+                        method: "POST",
+                        contentType: "application/json",
+                        data: JSON.stringify(oPayload),
+                        success: function (response) {
+                            MessageToast.show("Data saved successfully (RBP: " + rbpResult.permissionType + ")");
+                            oView.setBusy(false);
+                        },
+                        error: function (error) {
+                            console.error("Error saving data:", error);
+                            var sErrorMsg = error.responseJSON?.error?.message || error.statusText;
+                            if (error.status === 403) {
+                                MessageBox.error("Access Denied: " + sErrorMsg);
+                            } else {
+                                MessageBox.error("Failed to save compensation data: " + sErrorMsg);
+                            }
+                            oView.setBusy(false);
+                        }
+                    });
                 },
                 error: function (error) {
-                    console.error("Error saving data:", error);
-                    MessageBox.error("Failed to save compensation data: " + (error.responseJSON?.error?.message || error.statusText));
+                    console.error("Error checking RBP:", error);
+                    MessageBox.error("Failed to verify permissions: " + (error.responseJSON?.error?.message || error.statusText));
                     oView.setBusy(false);
                 }
             });
