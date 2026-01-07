@@ -87,12 +87,42 @@ service CompensationService {
   action saveToMDFObject(companyId: String, data: CompensationWorksheet) returns String;
   function getFromMDFObject(companyId: String, employeeId: String, formId: String) returns CompensationWorksheet;
   
-  // Audit and Reporting
+  // Audit and Reporting Types
+  type AuditLog {
+    id: UUID;
+    companyId: String(20);
+    userId: String(100);
+    action: String(50);
+    entityType: String(50);
+    entityId: String(100);
+    oldValue: String(5000);
+    newValue: String(5000);
+    timestamp: DateTime;
+    ipAddress: String(50);
+    userAgent: String(500);
+    sessionId: String(100);
+    changes: String(5000);
+  }
+  
+  type CompensationReport {
+    id: UUID;
+    reportName: String(200);
+    reportType: String(50);
+    companyId: String(20);
+    formId: String(100);
+    generatedBy: String(100);
+    generatedAt: DateTime;
+    reportData: LargeString;
+    status: String(50);
+    exportFormat: String(50);
+  }
+  
+  // Audit and Reporting Functions
   function getAuditLogs(companyId: String, userId: String, entityType: String, startDate: DateTime, endDate: DateTime) returns array of AuditLog;
   action generateReport(companyId: String, formId: String, reportType: String, startDate: DateTime, endDate: DateTime) returns CompensationReport;
   action exportReport(reportId: UUID, format: String) returns String;
   
   // Entity projections for audit and reports
-  entity AuditLogs as projection on com.sap.sf.compensation.AuditLog;
-  entity Reports as projection on com.sap.sf.compensation.CompensationReport;
+  entity AuditLogs as projection on comp.AuditLog;
+  entity Reports as projection on comp.CompensationReport;
 }
