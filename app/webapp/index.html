@@ -44,108 +44,22 @@
                 }).then(function(oComponent) {
                     console.log("Component created:", oComponent);
                     
-                    // Get root view from component
-                    var oRootView = oComponent.getRootControl();
-                    console.log("Root view from component:", oRootView);
-                    
-                    if (oRootView) {
-                        // Component has rootView, use ComponentContainer
-                        var oContainer = new ComponentContainer({
-                            component: oComponent,
-                            id: "compensationContainer"
-                        });
-                        oContainer.placeAt("content");
-                        console.log("ComponentContainer placed");
-                        
-                        // Force rendering - check if view is in DOM and content is rendered
-                        setTimeout(function() {
-                            var oViewDomRef = oRootView.getDomRef();
-                            console.log("View DOM ref:", oViewDomRef);
-                            if (!oViewDomRef) {
-                                console.log("View not in DOM, forcing render...");
-                                oRootView.invalidate();
-                                sap.ui.getCore().applyChanges();
-                            } else {
-                                console.log("View is in DOM, checking content...");
-                                var oPage = oRootView.byId("compensationPage");
-                                if (oPage) {
-                                    console.log("Page found:", oPage);
-                                    var oPageDomRef = oPage.getDomRef();
-                                    console.log("Page DOM ref:", oPageDomRef);
-                                    
-                                    // Check Page content aggregation
-                                    var aPageContent = oPage.getContent();
-                                    console.log("Page content aggregation:", aPageContent);
-                                    console.log("Page content length:", aPageContent.length);
-                                    
-                                    if (aPageContent.length > 0) {
-                                        var oVBox = aPageContent[0];
-                                        console.log("VBox found:", oVBox);
-                                        var oVBoxDomRef = oVBox.getDomRef();
-                                        console.log("VBox DOM ref:", oVBoxDomRef);
-                                        
-                                        if (!oVBoxDomRef) {
-                                            console.log("VBox not rendered, forcing render...");
-                                            oVBox.invalidate();
-                                            oPage.invalidate();
-                                            sap.ui.getCore().applyChanges();
-                                        } else {
-                                            console.log("VBox is rendered!");
-                                        }
-                                    } else {
-                                        console.error("Page content aggregation is empty!");
-                                    }
-                                    
-                                    // Check content section DOM
-                                    var oContentSection = document.getElementById("compensation---CompensationWorksheet--compensationPage-cont");
-                                    if (oContentSection) {
-                                        console.log("Content section DOM:", oContentSection);
-                                        console.log("Content section children:", oContentSection.children.length);
-                                        console.log("Content section innerHTML length:", oContentSection.innerHTML.length);
-                                        
-                                        if (oContentSection.children.length === 0) {
-                                            console.log("Content section is empty, forcing re-render...");
-                                            oPage.invalidate();
-                                            sap.ui.getCore().applyChanges();
-                                        }
-                                    }
-                                }
-                            }
-                        }, 1000);
-                    } else {
-                        // No rootView, create it manually
-                        console.log("No rootView in component, creating manually...");
-                        View.create({
-                            viewName: "com.sap.sf.compensation.view.CompensationWorksheet",
-                            type: ViewType.XML,
-                            id: "manualView"
-                        }).then(function(oView) {
-                            console.log("Manual view created:", oView);
-                            oView.placeAt("content");
-                            // Set view model from component
-                            var oCompModel = oComponent.getModel("compensation");
-                            if (oCompModel) {
-                                oView.setModel(oCompModel, "compensation");
-                            }
-                            console.log("View placed and model set");
-                        }).catch(function(viewError) {
-                            console.error("Manual view creation failed:", viewError);
-                        });
-                    }
-                }).catch(function(error) {
-                    console.error("Component creation failed, using direct view:", error);
-                    // Fallback: create view directly without component
-                    View.create({
-                        viewName: "com.sap.sf.compensation.view.CompensationWorksheet",
-                        type: ViewType.XML,
-                        id: "fallbackView"
-                    }).then(function(oView) {
-                        console.log("Fallback view created:", oView);
-                        oView.placeAt("content");
-                        console.log("Fallback view placed");
-                    }).catch(function(viewError) {
-                        console.error("View creation also failed:", viewError);
+                    // Use ComponentContainer to place component (with routing support)
+                    var oContainer = new ComponentContainer({
+                        component: oComponent,
+                        id: "compensationContainer"
                     });
+                    oContainer.placeAt("content");
+                    console.log("ComponentContainer placed");
+                    
+                    // Force rendering
+                    setTimeout(function() {
+                        sap.ui.getCore().applyChanges();
+                        console.log("Changes applied");
+                    }, 200);
+                    
+                }).catch(function(error) {
+                    console.error("Component creation failed:", error);
                 });
             });
         });
