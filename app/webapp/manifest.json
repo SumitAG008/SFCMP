@@ -51,7 +51,9 @@
       },
       "compensation": {
         "type": "sap.ui.model.json.JSONModel",
-        "settings": {}
+        "settings": {
+          "defaultBindingMode": "TwoWay"
+        }
       }
     }
   }

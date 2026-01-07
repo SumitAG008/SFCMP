@@ -1,5 +1,6 @@
 {
   "service": {
-    "model": "compensation-service"
+    "model": "compensation-service",
+    "path": "/compensation"
   }
 }
