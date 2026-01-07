@@ -52,10 +52,15 @@
                     <table:Table id="compensationTable"
                         rows="{compensation>/CompensationWorksheet}"
                         selectionMode="MultiToggle"
-                        visibleRowCount="15"
+                        visibleRowCount="20"
                         enableColumnReordering="true"
                         class="sapUiSizeCompact"
-                        rowHeight="60">
+                        rowHeight="60"
+                        enableColumnFreeze="true"
+                        enableGrouping="false"
+                        enableBusyIndicator="true"
+                        fixedColumnCount="1"
+                        fixedRowCount="1">
                         <table:extension>
                             <OverflowToolbar>
                                 <Title text="Employee Compensation Data"/>
