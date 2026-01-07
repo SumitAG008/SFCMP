@@ -578,15 +578,34 @@ sap.ui.define([
             
             // Create dialog if not exists
             if (!this._oWorkflowStepEditDialog) {
-                Fragment.load({
-                    id: oView.getId(),
-                    name: "com.sap.sf.compensation.view.WorkflowStepEditDialog",
-                    controller: this
-                }).then(function (oDialog) {
-                    oView.addDependent(oDialog);
-                    this._oWorkflowStepEditDialog = oDialog;
-                    this._oWorkflowStepEditDialog.open();
-                }.bind(this));
+                // Ensure layout library is loaded - SimpleForm is in sap.ui.layout.form
+                sap.ui.require([
+                    "sap/ui/layout/form/SimpleForm"
+                ], function() {
+                    Fragment.load({
+                        id: oView.getId(),
+                        name: "com.sap.sf.compensation.view.WorkflowStepEditDialog",
+                        controller: this
+                    }).then(function (oDialog) {
+                        oView.addDependent(oDialog);
+                        this._oWorkflowStepEditDialog = oDialog;
+                        this._oWorkflowStepEditDialog.open();
+                    }.bind(this)).catch(function(error) {
+                        console.error("Error loading step edit dialog:", error);
+                        MessageBox.error("Failed to load step edit dialog.");
+                    });
+                }.bind(this), function(error) {
+                    // Fallback: try loading without pre-require
+                    Fragment.load({
+                        id: oView.getId(),
+                        name: "com.sap.sf.compensation.view.WorkflowStepEditDialog",
+                        controller: this
+                    }).then(function (oDialog) {
+                        oView.addDependent(oDialog);
+                        this._oWorkflowStepEditDialog = oDialog;
+                        this._oWorkflowStepEditDialog.open();
+                    }.bind(this));
+                });
             } else {
                 this._oWorkflowStepEditDialog.open();
             }
