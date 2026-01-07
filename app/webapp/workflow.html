@@ -44,33 +44,51 @@
             if (sUserId) oModel.setProperty("/userId", sUserId);
             if (sFormId) oModel.setProperty("/formId", sFormId);
             
-            // Create view directly
+            // Create view directly - no component needed
             sap.ui.require([
                 "sap/ui/core/mvc/View",
-                "sap/ui/core/mvc/ViewType"
-            ], function(View, ViewType) {
+                "sap/ui/core/mvc/ViewType",
+                "sap/ui/core/mvc/Controller"
+            ], function(View, ViewType, Controller) {
                 console.log("Creating workflow view...");
-                View.create({
-                    viewName: "com.sap.sf.compensation.view.WorkflowVisualization",
-                    type: ViewType.XML,
-                    id: "workflowView"
-                }).then(function(oView) {
-                    console.log("Workflow view created:", oView);
-                    oView.placeAt("content");
-                    console.log("Workflow view placed");
-                    
-                    // Set model on view
-                    oView.setModel(oModel, "workflow");
-                    console.log("Model set on view");
-                    
-                    // Force rendering
-                    setTimeout(function() {
-                        sap.ui.getCore().applyChanges();
-                        console.log("Changes applied");
-                    }, 100);
-                }).catch(function(error) {
-                    console.error("Error creating workflow view:", error);
-                    console.error("Error details:", error.message, error.stack);
+                
+                // Load controller first
+                sap.ui.require([
+                    "com/sap/sf/compensation/controller/WorkflowVisualization"
+                ], function(WorkflowController) {
+                    // Create view with controller
+                    View.create({
+                        viewName: "com.sap.sf.compensation.view.WorkflowVisualization",
+                        type: ViewType.XML,
+                        id: "workflowView"
+                    }).then(function(oView) {
+                        console.log("Workflow view created:", oView);
+                        
+                        // Set model on view before placing
+                        oView.setModel(oModel, "workflow");
+                        console.log("Model set on view");
+                        
+                        // Place view
+                        oView.placeAt("content");
+                        console.log("Workflow view placed");
+                        
+                        // Force rendering
+                        setTimeout(function() {
+                            sap.ui.getCore().applyChanges();
+                            console.log("Changes applied");
+                        }, 200);
+                    }).catch(function(error) {
+                        console.error("Error creating workflow view:", error);
+                        console.error("Error details:", error.message);
+                        // Show error message
+                        var oErrorDiv = document.createElement("div");
+                        oErrorDiv.style.padding = "20px";
+                        oErrorDiv.style.color = "red";
+                        oErrorDiv.innerHTML = "<h2>Error Loading Workflow</h2><p>" + error.message + "</p>";
+                        document.getElementById("content").appendChild(oErrorDiv);
+                    });
+                }, function(error) {
+                    console.error("Error loading controller:", error);
                 });
             });
         });

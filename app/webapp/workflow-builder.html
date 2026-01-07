@@ -1,0 +1,49 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta charset="UTF-8">
+    <title>Workflow Builder</title>
+    <script id="sap-ui-bootstrap"
+        src="https://sapui5.hana.ondemand.com/resources/sap-ui-core.js"
+        data-sap-ui-theme="sap_fiori_3"
+        data-sap-ui-libs="sap.m,sap.ui.core,sap.ui.layout"
+        data-sap-ui-resourceroots='{"com.sap.sf.compensation": "./"}'
+        data-sap-ui-compatVersion="edge"
+        data-sap-ui-async="true">
+    </script>
+    <link rel="stylesheet" type="text/css" href="css/custom.css">
+    <script>
+        sap.ui.getCore().attachInit(function() {
+            console.log("=== Workflow Builder UI5 Core Initialized ===");
+            
+            // Create view directly
+            sap.ui.require([
+                "sap/ui/core/mvc/View",
+                "sap/ui/core/mvc/ViewType"
+            ], function(View, ViewType) {
+                console.log("Creating workflow builder view...");
+                
+                View.create({
+                    viewName: "com.sap.sf.compensation.view.WorkflowBuilder",
+                    type: ViewType.XML,
+                    id: "workflowBuilderView"
+                }).then(function(oView) {
+                    console.log("Workflow builder view created:", oView);
+                    oView.placeAt("content");
+                    console.log("Workflow builder view placed");
+                    
+                    setTimeout(function() {
+                        sap.ui.getCore().applyChanges();
+                        console.log("Changes applied");
+                    }, 200);
+                }).catch(function(error) {
+                    console.error("Error creating workflow builder view:", error);
+                });
+            });
+        });
+    </script>
+</head>
+<body class="sapUiBody" id="content">
+</body>
+</html>

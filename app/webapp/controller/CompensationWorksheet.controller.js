@@ -381,6 +381,18 @@ sap.ui.define([
             MessageBox.information("Budget information will be displayed here");
         },
         
+        onShowWorkflowBuilder: function () {
+            var oView = this.getView();
+            var oModel = oView.getModel("compensation");
+            var sCompanyId = oModel.getProperty("/companyId");
+            var sFormId = oModel.getProperty("/formId");
+
+            // Navigate to workflow builder
+            var sBuilderUrl = "/app/workflow-builder.html?companyId=" + encodeURIComponent(sCompanyId) + 
+                              "&formId=" + encodeURIComponent(sFormId);
+            window.open(sBuilderUrl, "_blank");
+        },
+        
         onShowApprovals: function () {
             var oView = this.getView();
             var oModel = oView.getModel("compensation");

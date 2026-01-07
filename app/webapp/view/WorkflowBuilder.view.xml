@@ -1,0 +1,87 @@
+<mvc:View controllerName="com.sap.sf.compensation.controller.WorkflowBuilder"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+    xmlns:layout="sap.ui.layout"
+    displayBlock="true"
+    height="100%">
+    <Page id="workflowBuilderPage" title="Workflow Builder" showNavButton="true" navButtonPress="onNavBack" class="sapUiNoContentPadding">
+        <headerContent>
+            <Button id="saveWorkflowBtn" type="Emphasized" icon="sap-icon://save" press="onSaveWorkflow" tooltip="Save Workflow"/>
+            <Button id="previewWorkflowBtn" icon="sap-icon://preview" press="onPreviewWorkflow" tooltip="Preview Workflow"/>
+            <Button id="addStepBtn" icon="sap-icon://add" press="onAddStep" tooltip="Add Workflow Step"/>
+        </headerContent>
+        <content>
+            <VBox class="sapUiSmallMargin">
+                <!-- Workflow Configuration -->
+                <Panel headerText="Workflow Configuration" expandable="false" class="sapUiNoContentPadding">
+                    <layout:SimpleForm layout="ResponsiveGridLayout" editable="true">
+                        <layout:content>
+                            <Label text="Workflow Name"/>
+                            <Input id="workflowName" value="{workflowBuilder>/workflowName}" placeholder="Enter workflow name"/>
+                            <Label text="Company ID"/>
+                            <Input id="companyId" value="{workflowBuilder>/companyId}" placeholder="SFHUB003674"/>
+                            <Label text="Form ID"/>
+                            <Input id="formId" value="{workflowBuilder>/formId}" placeholder="Enter Form ID"/>
+                            <Label text="Description"/>
+                            <TextArea id="workflowDescription" value="{workflowBuilder>/description}" rows="3" placeholder="Enter workflow description"/>
+                        </layout:content>
+                    </layout:SimpleForm>
+                </Panel>
+
+                <!-- Workflow Steps Builder -->
+                <Panel headerText="Workflow Steps" expandable="false" class="sapUiNoContentPadding">
+                    <VBox class="sapUiSmallMargin">
+                        <Text text="Drag and drop steps to reorder. Click to edit step details." class="sapUiSmallMarginBottom"/>
+                        
+                        <!-- Workflow Steps List -->
+                        <List id="workflowStepsList" 
+                            items="{workflowBuilder>/steps}"
+                            mode="None"
+                            class="workflow-steps-list">
+                            <CustomListItem class="workflow-step-item">
+                                <VBox class="sapUiSmallMargin">
+                                    <HBox alignItems="Center" justifyContent="SpaceBetween">
+                                        <HBox alignItems="Center">
+                                            <core:Icon src="sap-icon://drag" size="1.5rem" class="sapUiTinyMarginEnd drag-handle"/>
+                                            <Title text="{workflowBuilder>stepNumber}. {workflowBuilder>stepName}" level="H4"/>
+                                        </HBox>
+                                        <HBox>
+                                            <Button icon="sap-icon://edit" press="onEditStep" tooltip="Edit Step" class="sapUiTinyMarginEnd"/>
+                                            <Button icon="sap-icon://delete" press="onDeleteStep" tooltip="Delete Step" type="Reject"/>
+                                        </HBox>
+                                    </HBox>
+                                    
+                                    <HBox class="sapUiSmallMarginTop">
+                                        <VBox class="sapUiSmallMarginEnd" width="200px">
+                                            <Label text="Assignee Role:" class="sapUiTinyMarginBottom"/>
+                                            <Text text="{workflowBuilder>assigneeRole}" class="sapUiTextBold"/>
+                                        </VBox>
+                                        <VBox class="sapUiSmallMarginEnd" width="150px">
+                                            <Label text="Status:" class="sapUiTinyMarginBottom"/>
+                                            <ObjectStatus text="{workflowBuilder>status}" state="{workflowBuilder>statusState}"/>
+                                        </VBox>
+                                        <VBox width="200px">
+                                            <Label text="Icon:" class="sapUiTinyMarginBottom"/>
+                                            <core:Icon src="{workflowBuilder>icon}" size="1.5rem"/>
+                                        </VBox>
+                                    </HBox>
+                                </VBox>
+                            </CustomListItem>
+                        </List>
+                        
+                        <Button text="Add Step" icon="sap-icon://add" press="onAddStep" class="sapUiSmallMarginTop"/>
+                    </VBox>
+                </Panel>
+
+                <!-- Workflow Preview -->
+                <Panel headerText="Workflow Preview" expandable="true" expanded="false" class="sapUiNoContentPadding">
+                    <VBox class="sapUiSmallMargin">
+                        <Text text="Preview of how the workflow will look:" class="sapUiSmallMarginBottom"/>
+                        <VBox id="workflowPreview" class="workflow-preview-container"/>
+                    </VBox>
+                </Panel>
+            </VBox>
+        </content>
+    </Page>
+</mvc:View>
