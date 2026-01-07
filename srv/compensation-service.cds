@@ -71,4 +71,5 @@ service CompensationService {
   function getWorkflowStatus(companyId: String, formId: String) returns WorkflowStatus;
   function checkUserRBP(companyId: String, userId: String, permission: String) returns RBPStatus;
   function getEmployeeDataByRBP(companyId: String, userId: String) returns array of EmployeeData;
+  action saveWorkflow(companyId: String, formId: String, workflow: WorkflowConfig) returns WorkflowConfig;
 }

@@ -430,6 +430,38 @@ module.exports = cds.service.impl(async function() {
     }
   });
 
+  // Save Workflow Configuration
+  this.on('saveWorkflow', async (req) => {
+    const { companyId, formId, workflow } = req.data;
+    
+    try {
+      // In a real implementation, this would save to database
+      // For now, we'll store it in memory and could sync to SuccessFactors
+      console.log('Saving workflow configuration:', {
+        companyId,
+        formId,
+        workflowName: workflow.workflowName,
+        stepsCount: workflow.steps?.length || 0
+      });
+      
+      // TODO: Save to database or SuccessFactors
+      // You can add database persistence here
+      
+      // Return saved workflow
+      return {
+        companyId: companyId,
+        formId: formId,
+        workflowName: workflow.workflowName,
+        description: workflow.description,
+        steps: workflow.steps || [],
+        savedAt: new Date().toISOString(),
+        savedBy: req.user?.id || 'system'
+      };
+    } catch (error) {
+      req.error(500, `Failed to save workflow: ${error.message}`);
+    }
+  });
+
   // Standard OData CRUD operations (for direct API calls from SuccessFactors)
   this.on('READ', CompensationWorksheet, async (req) => {
     const query = req.query;
