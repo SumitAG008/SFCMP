@@ -313,96 +313,119 @@ module.exports = cds.service.impl(async function() {
     }
   });
 
-  // GET Workflow Status
+  // GET Workflow Status - Load from saved workflow configuration
   this.on('getWorkflowStatus', async (req) => {
     const { companyId, formId } = req.data;
     
     try {
-      // In a real implementation, this would call SuccessFactors Workflow API
-      // For now, return mock workflow data
-      // TODO: Integrate with SuccessFactors Workflow API
+      // Try to load saved workflow configuration
+      let savedWorkflow = null;
+      if (this.workflowConfigs && this.workflowConfigs[`${companyId}-${formId}`]) {
+        savedWorkflow = this.workflowConfigs[`${companyId}-${formId}`];
+      }
+      
+      // Use saved workflow steps or default structure
+      let workflowSteps = savedWorkflow?.steps || [
+        {
+          stepNumber: 1,
+          stepName: "Initiated",
+          status: "Completed",
+          statusState: "Success",
+          assigneeRole: "Initiator",
+          icon: "sap-icon://initiative",
+          description: "Compensation form created and submitted",
+          dueDays: 0,
+          required: true
+        },
+        {
+          stepNumber: 2,
+          stepName: "Manager Review",
+          status: "In Progress",
+          statusState: "Warning",
+          assigneeRole: "Direct Manager",
+          icon: "sap-icon://manager",
+          description: "Direct manager reviews and approves compensation",
+          dueDays: 3,
+          required: true
+        },
+        {
+          stepNumber: 3,
+          stepName: "HR Review",
+          status: "Pending",
+          statusState: "None",
+          assigneeRole: "HR Manager",
+          icon: "sap-icon://employee",
+          description: "HR reviews compensation for compliance",
+          dueDays: 2,
+          required: true
+        },
+        {
+          stepNumber: 4,
+          stepName: "Finance Approval",
+          status: "Pending",
+          statusState: "None",
+          assigneeRole: "Finance Director",
+          icon: "sap-icon://money-bills",
+          description: "Finance reviews budget and approves",
+          dueDays: 3,
+          required: true
+        },
+        {
+          stepNumber: 5,
+          stepName: "Final Approval",
+          status: "Pending",
+          statusState: "None",
+          assigneeRole: "VP of HR",
+          icon: "sap-icon://approvals",
+          description: "Senior management final approval",
+          dueDays: 5,
+          required: false
+        },
+        {
+          stepNumber: 6,
+          stepName: "Completed",
+          status: "Pending",
+          statusState: "None",
+          assigneeRole: "System",
+          icon: "sap-icon://accept",
+          description: "Compensation approved and processed",
+          dueDays: 0,
+          required: true
+        }
+      ];
+      
+      // Enrich steps with real-time data (assignee names, photos, dates)
+      const enrichedSteps = workflowSteps.map((step, index) => {
+        // Get assignee data based on role
+        const assigneeData = getAssigneeByRole(step.assigneeRole, companyId);
+        
+        return {
+          ...step,
+          assigneeName: step.assigneeName || assigneeData.name || step.assigneeRole,
+          assigneePhoto: step.assigneePhoto || assigneeData.photo || step.icon,
+          assigneeId: step.assigneeId || assigneeData.id || "",
+          completedDate: step.status === "Completed" ? (step.completedDate || new Date().toLocaleDateString()) : "",
+          dueDate: step.dueDate || (step.dueDays > 0 ? new Date(Date.now() + step.dueDays * 24 * 60 * 60 * 1000).toLocaleDateString() : ""),
+          comments: step.comments || ""
+        };
+      });
+      
+      // Determine overall status
+      const completedSteps = enrichedSteps.filter(s => s.status === "Completed").length;
+      const inProgressSteps = enrichedSteps.filter(s => s.status === "In Progress").length;
+      const currentStep = enrichedSteps.find(s => s.status === "In Progress" || (s.status === "Pending" && !enrichedSteps.slice(0, enrichedSteps.indexOf(s)).some(prev => prev.status === "Pending")));
       
       const workflowStatus = {
         companyId: companyId,
         formId: formId,
-        overallStatus: "In Progress",
-        currentStep: "Step 2: Manager Review",
-        initiatedBy: "System",
-        initiatedDate: new Date().toLocaleDateString(),
-        steps: [
-          {
-            stepNumber: 1,
-            stepName: "Initiated",
-            status: "Completed",
-            statusState: "Success",
-            assigneeName: "System User",
-            assigneeRole: "Initiator",
-            assigneePhoto: "sap-icon://employee",
-            assigneeId: "system",
-            completedDate: new Date().toLocaleDateString(),
-            comments: "Compensation form created and submitted",
-            dueDate: ""
-          },
-          {
-            stepNumber: 2,
-            stepName: "Manager Review",
-            status: "In Progress",
-            statusState: "Warning",
-            assigneeName: "John Manager",
-            assigneeRole: "Direct Manager",
-            assigneePhoto: "sap-icon://manager",
-            assigneeId: "manager001",
-            completedDate: "",
-            comments: "",
-            dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString()
-          },
-          {
-            stepNumber: 3,
-            stepName: "HR Review",
-            status: "Pending",
-            statusState: "None",
-            assigneeName: "Sarah HR",
-            assigneeRole: "HR Manager",
-            assigneePhoto: "sap-icon://employee",
-            assigneeId: "hr001",
-            completedDate: "",
-            comments: "",
-            dueDate: ""
-          },
-          {
-            stepNumber: 4,
-            stepName: "Finance Approval",
-            status: "Pending",
-            statusState: "None",
-            assigneeName: "Mike Finance",
-            assigneeRole: "Finance Director",
-            assigneePhoto: "sap-icon://money-bills",
-            assigneeId: "finance001",
-            completedDate: "",
-            comments: "",
-            dueDate: ""
-          },
-          {
-            stepNumber: 5,
-            stepName: "Final Approval",
-            status: "Pending",
-            statusState: "None",
-            assigneeName: "Lisa Executive",
-            assigneeRole: "VP of HR",
-            assigneePhoto: "sap-icon://approvals",
-            assigneeId: "exec001",
-            completedDate: "",
-            comments: "",
-            dueDate: ""
-          },
-          {
-            stepNumber: 6,
-            stepName: "Completed",
-            status: "Pending",
-            statusState: "None",
-            completedDate: ""
-          }
-        ],
+        workflowName: savedWorkflow?.workflowName || "Compensation Approval Workflow",
+        overallStatus: completedSteps === enrichedSteps.length ? "Completed" : (inProgressSteps > 0 ? "In Progress" : "Pending"),
+        statusState: completedSteps === enrichedSteps.length ? "Success" : (inProgressSteps > 0 ? "Warning" : "None"),
+        statusIcon: completedSteps === enrichedSteps.length ? "sap-icon://accept" : (inProgressSteps > 0 ? "sap-icon://pending" : "sap-icon://circle-task"),
+        currentStep: currentStep ? `Step ${currentStep.stepNumber}: ${currentStep.stepName}` : "Not Started",
+        initiatedBy: req.user?.id || savedWorkflow?.lastModifiedBy || "System",
+        initiatedDate: savedWorkflow?.lastModified ? new Date(savedWorkflow.lastModified).toLocaleDateString() : new Date().toLocaleDateString(),
+        steps: enrichedSteps,
         employees: []
       };
 
