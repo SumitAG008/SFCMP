@@ -75,7 +75,8 @@ sap.ui.define([
             oView.setBusy(true);
 
             // First check RBP permissions
-            var sRBPUrl = "/compensation/CompensationService/checkUserRBP";
+            // Try /odata/v4 prefix first (CAP OData v4 standard), fallback to /compensation
+            var sRBPUrl = "/odata/v4/compensation/CompensationService/checkUserRBP";
             var oRBPPayload = {
                 companyId: sCompanyId,
                 userId: sUserId,
@@ -95,7 +96,7 @@ sap.ui.define([
                     }
 
                     // RBP check passed, now get employee data
-                    var sEmployeeUrl = "/compensation/CompensationService/getEmployeeDataByRBP";
+                    var sEmployeeUrl = "/odata/v4/compensation/CompensationService/getEmployeeDataByRBP";
                     var oEmployeePayload = {
                         companyId: sCompanyId,
                         userId: sUserId
@@ -117,7 +118,7 @@ sap.ui.define([
                     });
 
                     // Now get compensation data
-                    var sServiceUrl = "/compensation/CompensationService/getCompensationData";
+                    var sServiceUrl = "/odata/v4/compensation/CompensationService/getCompensationData";
                     var oPayload = {
                         companyId: sCompanyId,
                         userId: sUserId
@@ -165,8 +166,8 @@ sap.ui.define([
                 return;
             }
 
-            // Check RBP edit permission before saving
-            var sRBPUrl = "/compensation/CompensationService/checkUserRBP";
+                // Check RBP edit permission before saving
+                var sRBPUrl = "/odata/v4/compensation/CompensationService/checkUserRBP";
             var oRBPPayload = {
                 companyId: sCompanyId,
                 userId: sUserId,
@@ -194,8 +195,8 @@ sap.ui.define([
                         return;
                     }
 
-                    // Call UPDATE API
-                    var sServiceUrl = "/compensation/CompensationService/updateCompensationData";
+                        // Call UPDATE API
+                        var sServiceUrl = "/odata/v4/compensation/CompensationService/updateCompensationData";
                     var oPayload = {
                         companyId: sCompanyId,
                         userId: sUserId,
@@ -650,7 +651,7 @@ sap.ui.define([
             oView.setBusy(true);
             
             // Save workflow to backend
-            var sServiceUrl = "/compensation/CompensationService/saveWorkflow";
+                var sServiceUrl = "/odata/v4/compensation/CompensationService/saveWorkflow";
             var oPayload = {
                 companyId: oCompModel.getProperty("/companyId"),
                 formId: oWorkflowData.formId || oCompModel.getProperty("/formId"),
