@@ -1,8 +1,8 @@
-<core:FragmentDefinition xmlns="sap.m" xmlns:core="sap.ui.core" xmlns:layout="sap.ui.layout">
+<core:FragmentDefinition xmlns="sap.m" xmlns:core="sap.ui.core" xmlns:form="sap.ui.layout.form">
     <Dialog id="workflowStepEditDialog" title="Edit Workflow Step" contentWidth="500px">
         <content>
-            <layout:SimpleForm layout="ResponsiveGridLayout" editable="true" class="sapUiSmallMargin">
-                <layout:content>
+            <form:SimpleForm layout="ResponsiveGridLayout" editable="true" class="sapUiSmallMargin">
+                <form:content>
                     <Label text="Step Name" required="true"/>
                     <Input id="editStepNameInput" value="{workflowStepEdit>/stepName}" placeholder="Enter step name"/>
                     <Label text="Assignee Role" required="true"/>
@@ -25,8 +25,8 @@
                     </Select>
                     <Label text="Description"/>
                     <TextArea id="editStepDescInput" value="{workflowStepEdit>/description}" rows="3" placeholder="Enter step description"/>
-                </layout:content>
-            </layout:SimpleForm>
+                </form:content>
+            </form:SimpleForm>
         </content>
         <beginButton>
             <Button text="Save" type="Emphasized" press="onSaveWorkflowStepEdit"/>

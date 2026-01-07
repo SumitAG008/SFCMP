@@ -2,7 +2,7 @@
     xmlns:mvc="sap.ui.core.mvc"
     xmlns="sap.m"
     xmlns:core="sap.ui.core"
-    xmlns:layout="sap.ui.layout"
+    xmlns:form="sap.ui.layout.form"
     displayBlock="true"
     height="100%">
     <Page id="workflowBuilderPage" title="Workflow Builder" showNavButton="true" navButtonPress="onNavBack" class="sapUiNoContentPadding">
@@ -15,8 +15,8 @@
             <VBox class="sapUiSmallMargin">
                 <!-- Workflow Configuration -->
                 <Panel headerText="Workflow Configuration" expandable="false" class="sapUiNoContentPadding">
-                    <layout:SimpleForm layout="ResponsiveGridLayout" editable="true">
-                        <layout:content>
+                    <form:SimpleForm layout="ResponsiveGridLayout" editable="true">
+                        <form:content>
                             <Label text="Workflow Name"/>
                             <Input id="workflowName" value="{workflowBuilder>/workflowName}" placeholder="Enter workflow name"/>
                             <Label text="Company ID"/>
@@ -25,8 +25,8 @@
                             <Input id="formId" value="{workflowBuilder>/formId}" placeholder="Enter Form ID"/>
                             <Label text="Description"/>
                             <TextArea id="workflowDescription" value="{workflowBuilder>/description}" rows="3" placeholder="Enter workflow description"/>
-                        </layout:content>
-                    </layout:SimpleForm>
+                        </form:content>
+                    </form:SimpleForm>
                 </Panel>
 
                 <!-- Workflow Steps Builder -->

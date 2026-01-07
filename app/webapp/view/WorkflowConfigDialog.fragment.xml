@@ -1,19 +1,19 @@
-<core:FragmentDefinition xmlns="sap.m" xmlns:core="sap.ui.core" xmlns:layout="sap.ui.layout">
+<core:FragmentDefinition xmlns="sap.m" xmlns:core="sap.ui.core" xmlns:form="sap.ui.layout.form">
     <Dialog id="workflowConfigDialog" title="Configure Workflow" contentWidth="800px" contentHeight="600px" resizable="true">
         <content>
             <VBox class="sapUiSmallMargin">
                 <!-- Workflow Configuration -->
                 <Panel headerText="Workflow Settings" expandable="false" class="sapUiNoContentPadding">
-                    <layout:SimpleForm layout="ResponsiveGridLayout" editable="true">
-                        <layout:content>
+                    <form:SimpleForm layout="ResponsiveGridLayout" editable="true">
+                        <form:content>
                             <Label text="Workflow Name"/>
                             <Input id="workflowNameInput" value="{workflowConfig>/workflowName}" placeholder="Enter workflow name"/>
                             <Label text="Description"/>
                             <TextArea id="workflowDescInput" value="{workflowConfig>/description}" rows="2" placeholder="Enter workflow description"/>
                             <Label text="Form ID"/>
                             <Input id="workflowFormIdInput" value="{workflowConfig>/formId}" placeholder="Enter Form ID"/>
-                        </layout:content>
-                    </layout:SimpleForm>
+                        </form:content>
+                    </form:SimpleForm>
                 </Panel>
 
                 <!-- Workflow Steps Configuration -->
@@ -40,16 +40,16 @@
                                         </HBox>
                                     </HBox>
                                     
-                                    <layout:SimpleForm layout="ResponsiveGridLayout" editable="false" class="sapUiSmallMarginTop">
-                                        <layout:content>
+                                    <form:SimpleForm layout="ResponsiveGridLayout" editable="false" class="sapUiSmallMarginTop">
+                                        <form:content>
                                             <Label text="Assignee Role"/>
                                             <Text text="{workflowConfig>assigneeRole}"/>
                                             <Label text="Status"/>
                                             <ObjectStatus text="{workflowConfig>status}" state="{workflowConfig>statusState}"/>
                                             <Label text="Icon"/>
                                             <core:Icon src="{workflowConfig>icon}" size="1.5rem"/>
-                                        </layout:content>
-                                    </layout:SimpleForm>
+                                        </form:content>
+                                    </form:SimpleForm>
                                 </VBox>
                             </CustomListItem>
                         </List>
