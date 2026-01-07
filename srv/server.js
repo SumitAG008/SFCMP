@@ -7,6 +7,18 @@ cds.on('bootstrap', app => {
   // Serve UI5 app files
   const webappPath = path.join(__dirname, '../app/webapp');
   
+  // Enable CORS for SuccessFactors integration
+  app.use((req, res, next) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    if (req.method === 'OPTIONS') {
+      res.sendStatus(200);
+    } else {
+      next();
+    }
+  });
+  
   // Serve static files with proper MIME types
   app.use(express.static(webappPath, {
     setHeaders: (res, filePath) => {

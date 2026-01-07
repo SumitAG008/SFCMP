@@ -8,20 +8,33 @@ sap.ui.define([
 
     return Controller.extend("com.sap.sf.compensation.controller.CompensationWorksheet", {
         onInit: function () {
+            // Get URL parameters (for SuccessFactors integration)
+            var oUriParams = new URLSearchParams(window.location.search);
+            var sCompanyId = oUriParams.get('companyId') || oUriParams.get('bplte_company') || "SFHUB003674";
+            var sUserId = oUriParams.get('userId') || oUriParams.get('user') || "";
+            var sFormId = oUriParams.get('formId') || oUriParams.get('form') || "";
+            var sEffectiveDate = oUriParams.get('effectiveDate') || "";
+            
             // Get or initialize compensation model
             var oView = this.getView();
             var oModel = oView.getModel("compensation");
             
             if (!oModel) {
                 oModel = new JSONModel({
-                    companyId: "SFHUB003674",
-                    userId: "",
-                    formId: "",
-                    effectiveDate: "",
+                    companyId: sCompanyId,
+                    userId: sUserId,
+                    formId: sFormId,
+                    effectiveDate: sEffectiveDate,
                     totalEmployees: 0,
                     CompensationWorksheet: []
                 });
                 oView.setModel(oModel, "compensation");
+            } else {
+                // Update with URL parameters
+                oModel.setProperty("/companyId", sCompanyId);
+                if (sUserId) oModel.setProperty("/userId", sUserId);
+                if (sFormId) oModel.setProperty("/formId", sFormId);
+                if (sEffectiveDate) oModel.setProperty("/effectiveDate", sEffectiveDate);
             }
             
             // Ensure default values are set
@@ -29,13 +42,21 @@ sap.ui.define([
                 oModel.setProperty("/companyId", "SFHUB003674");
             }
             
-            // Focus on User ID field if empty
-            setTimeout(function() {
-                var oUserIdInput = oView.byId("userId");
-                if (oUserIdInput && !oModel.getProperty("/userId")) {
-                    oUserIdInput.focus();
-                }
-            }, 500);
+            // Auto-load data if userId provided from URL
+            if (sUserId) {
+                setTimeout(function() {
+                    console.log("Auto-loading data for user:", sUserId);
+                    this.onRefresh();
+                }.bind(this), 1000);
+            } else {
+                // Focus on User ID field if empty
+                setTimeout(function() {
+                    var oUserIdInput = oView.byId("userId");
+                    if (oUserIdInput && !oModel.getProperty("/userId")) {
+                        oUserIdInput.focus();
+                    }
+                }, 500);
+            }
         },
 
         onRefresh: function () {
