@@ -68,6 +68,13 @@ service CompensationService {
     managerName: String(200);
   }
   
+  type WorkflowConfig {
+    workflowName: String(200);
+    formId: String(100);
+    description: String(500);
+    steps: array of WorkflowStep;
+  }
+  
   function getWorkflowStatus(companyId: String, formId: String) returns WorkflowStatus;
   function checkUserRBP(companyId: String, userId: String, permission: String) returns RBPStatus;
   function getEmployeeDataByRBP(companyId: String, userId: String) returns array of EmployeeData;
