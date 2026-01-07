@@ -71,7 +71,7 @@
                                     <HBox alignItems="Center">
                                         <core:Icon src="sap-icon://employee" size="1.5rem" class="sapUiTinyMarginEnd"/>
                                         <VBox>
-                                            <Text text="{compensation>employeeName}" fontWeight="Bold"/>
+                                            <Text text="{compensation>employeeName}" class="sapUiTextBold"/>
                                             <Text text="{compensation>employeeId}" class="sapUiTinyMarginTop"/>
                                         </VBox>
                                     </HBox>
@@ -225,7 +225,7 @@
                                 <Label text="Total Pay (Including Lump Sum)"/>
                                 <table:template>
                                     <Input value="{compensation>totalPayIncludingLumpSum}" type="Number" 
-                                        editable="false" textAlign="End" fontWeight="Bold">
+                                        editable="false" textAlign="End" class="sapUiTextBold">
                                         <layoutData>
                                             <FlexItemData growFactor="1"/>
                                         </layoutData>

@@ -8,16 +8,25 @@ sap.ui.define([
 
     return Controller.extend("com.sap.sf.compensation.controller.CompensationWorksheet", {
         onInit: function () {
-            // Initialize default values
-            var oModel = this.getView().getModel("compensation");
+            // Get or initialize compensation model
+            var oView = this.getView();
+            var oModel = oView.getModel("compensation");
+            
             if (!oModel) {
                 oModel = new JSONModel({
                     companyId: "SFHUB003674",
                     userId: "",
                     formId: "",
+                    effectiveDate: "",
+                    totalEmployees: 0,
                     CompensationWorksheet: []
                 });
-                this.getView().setModel(oModel, "compensation");
+                oView.setModel(oModel, "compensation");
+            }
+            
+            // Ensure default values are set
+            if (!oModel.getProperty("/companyId")) {
+                oModel.setProperty("/companyId", "SFHUB003674");
             }
         },
 

@@ -1,0 +1,11 @@
+.sapUiTextBold {
+    font-weight: bold !important;
+}
+
+.sapUiSizeCompact .sapUiTable {
+    font-size: 0.875rem;
+}
+
+.sapUiTable .sapUiTableCtrl {
+    font-size: 0.875rem;
+}

@@ -50,36 +50,8 @@
         }
       },
       "compensation": {
-        "type": "sap.ui.model.odata.v2.ODataModel",
-        "settings": {
-          "defaultBindingMode": "TwoWay",
-          "serviceUrl": "/compensation/CompensationService/"
-        }
-      }
-    },
-    "routing": {
-      "config": {
-        "routerClass": "sap.m.routing.Router",
-        "viewType": "XML",
-        "async": true,
-        "controlId": "app",
-        "controlAggregation": "pages",
-        "transition": "slide"
-      },
-      "routes": [
-        {
-          "name": "RouteCompensationWorksheet",
-          "pattern": "",
-          "target": ["TargetCompensationWorksheet"]
-        }
-      ],
-      "targets": {
-        "TargetCompensationWorksheet": {
-          "viewType": "XML",
-          "transition": "slide",
-          "clearControlAggregation": false,
-          "viewName": "com.sap.sf.compensation.view.CompensationWorksheet"
-        }
+        "type": "sap.ui.model.json.JSONModel",
+        "settings": {}
       }
     }
   }

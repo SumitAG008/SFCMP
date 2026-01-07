@@ -1,8 +1,9 @@
 sap.ui.define([
     "sap/ui/core/UIComponent",
     "sap/ui/Device",
+    "sap/ui/model/json/JSONModel",
     "com/sap/sf/compensation/model/models"
-], function (UIComponent, Device, models) {
+], function (UIComponent, Device, JSONModel, models) {
     "use strict";
 
     return UIComponent.extend("com.sap.sf.compensation.Component", {
@@ -13,7 +14,19 @@ sap.ui.define([
         init: function () {
             UIComponent.prototype.init.apply(this, arguments);
             this.setModel(models.createDeviceModel(), "device");
-            this.getRouter().initialize();
+            
+            // Initialize compensation model with default values
+            var oCompensationModel = new JSONModel({
+                companyId: "SFHUB003674",
+                userId: "",
+                formId: "",
+                effectiveDate: "",
+                totalEmployees: 0,
+                CompensationWorksheet: []
+            });
+            this.setModel(oCompensationModel, "compensation");
+            
+            // DO NOT initialize router - we're using rootView directly
         }
     });
 });
