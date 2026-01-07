@@ -29,10 +29,10 @@
   "sap.ui5": {
     "flexEnabled": false,
     "rootView": {
-      "viewName": "com.sap.sf.compensation.view.CompensationWorksheet",
+      "viewName": "com.sap.sf.compensation.view.App",
       "type": "XML",
       "async": true,
-      "id": "CompensationWorksheet"
+      "id": "App"
     },
     "dependencies": {
       "minUI5Version": "1.60.0",
@@ -40,6 +40,50 @@
         "sap.ui.core": {},
         "sap.m": {},
         "sap.ui.table": {}
+      }
+    },
+    "routing": {
+      "config": {
+        "routerClass": "sap.m.routing.Router",
+        "viewType": "XML",
+        "viewPath": "com.sap.sf.compensation.view",
+        "controlId": "app",
+        "controlAggregation": "pages",
+        "async": true
+      },
+      "routes": [
+        {
+          "name": "compensation",
+          "pattern": "",
+          "target": "compensation"
+        },
+        {
+          "name": "workflowBuilder",
+          "pattern": "workflow-builder",
+          "target": "workflowBuilder"
+        },
+        {
+          "name": "workflow",
+          "pattern": "workflow",
+          "target": "workflow"
+        }
+      ],
+      "targets": {
+        "compensation": {
+          "viewName": "CompensationWorksheet",
+          "viewId": "CompensationWorksheet",
+          "viewLevel": 1
+        },
+        "workflowBuilder": {
+          "viewName": "WorkflowBuilder",
+          "viewId": "WorkflowBuilder",
+          "viewLevel": 1
+        },
+        "workflow": {
+          "viewName": "WorkflowVisualization",
+          "viewId": "WorkflowVisualization",
+          "viewLevel": 1
+        }
       }
     },
     "models": {

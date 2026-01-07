@@ -26,6 +26,9 @@ sap.ui.define([
                 CompensationWorksheet: []
             });
             this.setModel(oCompensationModel, "compensation");
+            
+            // Initialize router
+            this.getRouter().initialize();
         },
         
     });

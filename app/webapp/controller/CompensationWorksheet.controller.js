@@ -382,29 +382,15 @@ sap.ui.define([
         },
         
         onShowWorkflowBuilder: function () {
-            var oView = this.getView();
-            var oModel = oView.getModel("compensation");
-            var sCompanyId = oModel.getProperty("/companyId");
-            var sFormId = oModel.getProperty("/formId");
-
-            // Navigate to workflow builder
-            var sBuilderUrl = "/app/workflow-builder.html?companyId=" + encodeURIComponent(sCompanyId) + 
-                              "&formId=" + encodeURIComponent(sFormId);
-            window.open(sBuilderUrl, "_blank");
+            // Navigate to workflow builder using UI5 router
+            var oRouter = this.getOwnerComponent().getRouter();
+            oRouter.navTo("workflowBuilder");
         },
         
         onShowApprovals: function () {
-            var oView = this.getView();
-            var oModel = oView.getModel("compensation");
-            var sCompanyId = oModel.getProperty("/companyId");
-            var sUserId = oModel.getProperty("/userId");
-            var sFormId = oModel.getProperty("/formId");
-
-            // Navigate to workflow visualization page
-            var sWorkflowUrl = "/app/workflow.html?companyId=" + encodeURIComponent(sCompanyId) + 
-                              "&userId=" + encodeURIComponent(sUserId) + 
-                              "&formId=" + encodeURIComponent(sFormId);
-            window.location.href = sWorkflowUrl;
+            // Navigate to workflow visualization using UI5 router
+            var oRouter = this.getOwnerComponent().getRouter();
+            oRouter.navTo("workflow");
         },
         
         onExport: function () {

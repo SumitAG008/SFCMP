@@ -91,7 +91,9 @@ sap.ui.define([
         },
 
         onNavBack: function () {
-            window.history.back();
+            // Navigate back to compensation worksheet using UI5 router
+            var oRouter = this.getOwnerComponent().getRouter();
+            oRouter.navTo("compensation");
         },
 
         onAddStep: function () {

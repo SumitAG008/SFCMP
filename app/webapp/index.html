@@ -29,16 +29,14 @@
             sap.ui.getCore().setModel(oModel, "compensation");
             console.log("Model created and set");
             
-            // Try component first, fallback to direct view
+            // Create component with routing
             sap.ui.require([
                 "sap/ui/core/Component",
-                "sap/ui/core/ComponentContainer",
-                "sap/ui/core/mvc/View",
-                "sap/ui/core/mvc/ViewType"
-            ], function(Component, ComponentContainer, View, ViewType) {
+                "sap/ui/core/ComponentContainer"
+            ], function(Component, ComponentContainer) {
                 console.log("Dependencies loaded");
                 
-                // Try component approach
+                // Create component with routing support
                 Component.create({
                     name: "com.sap.sf.compensation",
                     id: "compensation",

@@ -1,0 +1,7 @@
+<mvc:View controllerName="com.sap.sf.compensation.controller.App"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+    displayBlock="true"
+    height="100%">
+    <App id="app"/>
+</mvc:View>
