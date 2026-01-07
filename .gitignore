@@ -7,6 +7,7 @@ dist/
 *.log
 .DS_Store
 .env
+default-env.json
 .cdsrc.local.json
 gen/
 srv/gen/
