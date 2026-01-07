@@ -52,3 +52,38 @@ entity Compensation {
   lastModifiedBy: String(100);
   lastModifiedDate: DateTime;
 }
+
+  // Workflow Status Structure
+  type WorkflowStatus {
+    companyId: String(20);
+    formId: String(100);
+    overallStatus: String(50);
+    currentStep: String(100);
+    initiatedBy: String(100);
+    initiatedDate: String(50);
+    steps: array of WorkflowStep;
+    employees: array of WorkflowEmployee;
+  }
+
+  type WorkflowStep {
+    stepNumber: Integer;
+    stepName: String(100);
+    status: String(50);
+    statusState: String(50);
+    assigneeName: String(200);
+    assigneeRole: String(100);
+    assigneePhoto: String(500);
+    assigneeId: String(100);
+    completedDate: String(50);
+    comments: String(5000);
+    dueDate: String(50);
+  }
+
+  type WorkflowEmployee {
+    employeeId: String(100);
+    employeeName: String(200);
+    photo: String(500);
+    finalSalary: Decimal(15, 2);
+    status: String(50);
+  }
+}
