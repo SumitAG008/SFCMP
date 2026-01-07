@@ -59,7 +59,7 @@
                         oContainer.placeAt("content");
                         console.log("ComponentContainer placed");
                         
-                        // Force rendering - check if view is in DOM
+                        // Force rendering - check if view is in DOM and content is rendered
                         setTimeout(function() {
                             var oViewDomRef = oRootView.getDomRef();
                             console.log("View DOM ref:", oViewDomRef);
@@ -74,9 +74,46 @@
                                     console.log("Page found:", oPage);
                                     var oPageDomRef = oPage.getDomRef();
                                     console.log("Page DOM ref:", oPageDomRef);
+                                    
+                                    // Check Page content aggregation
+                                    var aPageContent = oPage.getContent();
+                                    console.log("Page content aggregation:", aPageContent);
+                                    console.log("Page content length:", aPageContent.length);
+                                    
+                                    if (aPageContent.length > 0) {
+                                        var oVBox = aPageContent[0];
+                                        console.log("VBox found:", oVBox);
+                                        var oVBoxDomRef = oVBox.getDomRef();
+                                        console.log("VBox DOM ref:", oVBoxDomRef);
+                                        
+                                        if (!oVBoxDomRef) {
+                                            console.log("VBox not rendered, forcing render...");
+                                            oVBox.invalidate();
+                                            oPage.invalidate();
+                                            sap.ui.getCore().applyChanges();
+                                        } else {
+                                            console.log("VBox is rendered!");
+                                        }
+                                    } else {
+                                        console.error("Page content aggregation is empty!");
+                                    }
+                                    
+                                    // Check content section DOM
+                                    var oContentSection = document.getElementById("compensation---CompensationWorksheet--compensationPage-cont");
+                                    if (oContentSection) {
+                                        console.log("Content section DOM:", oContentSection);
+                                        console.log("Content section children:", oContentSection.children.length);
+                                        console.log("Content section innerHTML length:", oContentSection.innerHTML.length);
+                                        
+                                        if (oContentSection.children.length === 0) {
+                                            console.log("Content section is empty, forcing re-render...");
+                                            oPage.invalidate();
+                                            sap.ui.getCore().applyChanges();
+                                        }
+                                    }
                                 }
                             }
-                        }, 500);
+                        }, 1000);
                     } else {
                         // No rootView, create it manually
                         console.log("No rootView in component, creating manually...");
