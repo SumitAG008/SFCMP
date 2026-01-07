@@ -505,9 +505,9 @@ sap.ui.define([
             
             // Create dialog if not exists
             if (!this._oWorkflowConfigDialog) {
-                // Ensure layout library is loaded first
+                // Ensure layout library is loaded first - SimpleForm is in sap.ui.layout.form
                 sap.ui.require([
-                    "sap/ui/layout/SimpleForm"
+                    "sap/ui/layout/form/SimpleForm"
                 ], function() {
                     Fragment.load({
                         id: oView.getId(),
@@ -523,7 +523,19 @@ sap.ui.define([
                     });
                 }.bind(this), function(error) {
                     console.error("Error loading layout library:", error);
-                    MessageBox.error("Failed to load UI library. Please refresh the page.");
+                    // Try loading without pre-requiring - let UI5 handle it
+                    Fragment.load({
+                        id: oView.getId(),
+                        name: "com.sap.sf.compensation.view.WorkflowConfigDialog",
+                        controller: this
+                    }).then(function (oDialog) {
+                        oView.addDependent(oDialog);
+                        this._oWorkflowConfigDialog = oDialog;
+                        this._oWorkflowConfigDialog.open();
+                    }.bind(this)).catch(function(loadError) {
+                        console.error("Error loading workflow config dialog:", loadError);
+                        MessageBox.error("Failed to load workflow configuration dialog. Please refresh the page.");
+                    });
                 });
             } else {
                 this._oWorkflowConfigDialog.open();
