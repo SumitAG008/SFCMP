@@ -8,12 +8,7 @@ sap.ui.define([
 
     return UIComponent.extend("com.sap.sf.compensation.Component", {
         metadata: {
-            manifest: "json",
-            rootView: {
-                viewName: "com.sap.sf.compensation.view.CompensationWorksheet",
-                type: "XML",
-                id: "CompensationWorksheet"
-            }
+            manifest: "json"
         },
 
         init: function () {
