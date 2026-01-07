@@ -7,7 +7,7 @@
     xmlns:form="sap.ui.layout.form"
     displayBlock="true"
     height="100%">
-    <Page id="compensationPage" title="Compensation Worksheet" showNavButton="false" class="sapUiNoContentPadding">
+    <Page id="compensationPage" title="Compensation Worksheet" showNavButton="false" class="sapUiNoContentPadding" enableScrolling="true">
         <headerContent>
             <Button id="refreshBtn" icon="sap-icon://refresh" press="onRefresh" tooltip="Refresh Data"/>
             <Button id="saveBtn" type="Emphasized" icon="sap-icon://save" press="onSave" tooltip="Save Changes"/>
