@@ -41,6 +41,13 @@
         "sap.m": {},
         "sap.ui.table": {},
         "sap.ui.layout": {}
+      },
+      "resources": {
+        "css": [
+          {
+            "uri": "css/custom.css"
+          }
+        ]
       }
     },
     "routing": {
