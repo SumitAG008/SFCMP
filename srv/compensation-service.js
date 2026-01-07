@@ -532,6 +532,409 @@ module.exports = cds.service.impl(async function() {
     }
   });
 
+  // Get Employee Data from SuccessFactors Employee Central
+  this.on('getEmployeeDataFromSF', async (req) => {
+    const { companyId, userId, employeeId } = req.data;
+    
+    try {
+      const targetUserId = employeeId || userId;
+      
+      // 1. Get Personal Information
+      const personalEndpoint = `/odata/v2/PerPersonal?$filter=userId eq '${targetUserId}'&$select=personIdExternal,firstName,lastName,email,phoneNumber`;
+      const personalData = await callSFAPI(personalEndpoint);
+      
+      // 2. Get Employment Information
+      const employmentEndpoint = `/odata/v2/EmpEmployment?$filter=userId eq '${targetUserId}'&$select=startDate,jobTitle,department,position`;
+      const employmentData = await callSFAPI(employmentEndpoint);
+      
+      // 3. Get Job Information
+      const jobEndpoint = `/odata/v2/EmpJob?$filter=userId eq '${targetUserId}'&$select=jobTitle,department,position,managerId`;
+      const jobData = await callSFAPI(jobEndpoint);
+      
+      // 4. Get Employee Photo
+      const photoEndpoint = `/odata/v2/Photo?$filter=userId eq '${targetUserId}'`;
+      let photoUrl = null;
+      try {
+        const photoData = await callSFAPI(photoEndpoint);
+        photoUrl = photoData.d?.results?.[0]?.photo || null;
+      } catch (error) {
+        console.log("Photo not available for user:", targetUserId);
+      }
+      
+      // 5. Combine all data
+      const employeeData = {
+        employeeId: personalData.d?.results?.[0]?.personIdExternal || targetUserId,
+        firstName: personalData.d?.results?.[0]?.firstName || "",
+        lastName: personalData.d?.results?.[0]?.lastName || "",
+        email: personalData.d?.results?.[0]?.email || "",
+        phoneNumber: personalData.d?.results?.[0]?.phoneNumber || "",
+        jobTitle: jobData.d?.results?.[0]?.jobTitle || employmentData.d?.results?.[0]?.jobTitle || "",
+        department: jobData.d?.results?.[0]?.department || employmentData.d?.results?.[0]?.department || "",
+        position: jobData.d?.results?.[0]?.position || employmentData.d?.results?.[0]?.position || "",
+        managerId: jobData.d?.results?.[0]?.managerId || "",
+        startDate: employmentData.d?.results?.[0]?.startDate || "",
+        photo: photoUrl || "sap-icon://employee",
+        employeeName: `${personalData.d?.results?.[0]?.firstName || ''} ${personalData.d?.results?.[0]?.lastName || ''}`.trim()
+      };
+      
+      return employeeData;
+    } catch (error) {
+      req.error(500, `Failed to extract employee data from SuccessFactors: ${error.message}`);
+    }
+  });
+
+  // Save to SuccessFactors MDF Object
+  this.on('saveToMDFObject', async (req) => {
+    const { companyId, data } = req.data;
+    
+    try {
+      // SuccessFactors MDF API endpoint (adjust object name based on your MDF configuration)
+      const mdfObjectName = 'CompensationExtension'; // Change to your MDF object name
+      const mdfEndpoint = `/odata/v2/${mdfObjectName}`;
+      
+      // Check if record exists
+      const checkEndpoint = `/odata/v2/${mdfObjectName}?$filter=employeeId eq '${data.employeeId}' and formId eq '${data.formId}'`;
+      const existing = await callSFAPI(checkEndpoint);
+      
+      if (existing.d?.results?.length > 0) {
+        // UPDATE existing MDF record
+        const updateEndpoint = `/odata/v2/${mdfObjectName}('${existing.d.results[0].id}')`;
+        const mdfPayload = {
+          employeeId: data.employeeId,
+          formId: data.formId,
+          meritIncrease: data.meritIncrease,
+          finalSalary: data.finalSalary,
+          status: data.status || 'Draft',
+          lastModified: new Date().toISOString()
+        };
+        
+        await callSFAPI(updateEndpoint, 'PATCH', mdfPayload);
+        return { success: true, action: 'UPDATED', id: existing.d.results[0].id };
+      } else {
+        // CREATE new MDF record
+        const mdfPayload = {
+          employeeId: data.employeeId,
+          formId: data.formId,
+          meritIncrease: data.meritIncrease || 0,
+          finalSalary: data.finalSalary || 0,
+          status: data.status || 'Draft',
+          lastModified: new Date().toISOString()
+        };
+        
+        const result = await callSFAPI(mdfEndpoint, 'POST', mdfPayload);
+        return { success: true, action: 'CREATED', id: result.d?.id };
+      }
+    } catch (error) {
+      console.error('Error saving to MDF object:', error);
+      // Don't fail the request if MDF save fails
+      return { success: false, message: error.message };
+    }
+  });
+
+  // Get from SuccessFactors MDF Object
+  this.on('getFromMDFObject', async (req) => {
+    const { companyId, employeeId, formId } = req.data;
+    
+    try {
+      const mdfObjectName = 'CompensationExtension';
+      const endpoint = `/odata/v2/${mdfObjectName}?$filter=employeeId eq '${employeeId}' and formId eq '${formId}'`;
+      const mdfData = await callSFAPI(endpoint);
+      
+      if (mdfData.d?.results?.length > 0) {
+        return mdfData.d.results[0];
+      }
+      
+      return null;
+    } catch (error) {
+      req.error(500, `Failed to get from MDF object: ${error.message}`);
+    }
+  });
+
+  // Audit Logging Function
+  this.on('logAudit', async (req) => {
+    const { companyId, userId, action, entityType, entityId, oldValue, newValue, ipAddress, userAgent, changes } = req.data;
+    
+    try {
+      await cds.run(
+        INSERT.into('com.sap.sf.compensation.AuditLog').entries({
+          id: cds.utils.uuid(),
+          companyId: companyId,
+          userId: userId,
+          action: action,
+          entityType: entityType,
+          entityId: entityId,
+          oldValue: oldValue || '',
+          newValue: newValue || '',
+          timestamp: new Date().toISOString(),
+          ipAddress: ipAddress || req._?.req?.ip || '',
+          userAgent: userAgent || req._?.req?.headers?.['user-agent'] || '',
+          sessionId: req._?.req?.sessionID || '',
+          changes: changes || ''
+        })
+      );
+    } catch (error) {
+      console.error('Error logging audit:', error);
+    }
+  });
+
+  // Get Audit Logs
+  this.on('getAuditLogs', async (req) => {
+    const { companyId, userId, entityType, entityId, startDate, endDate } = req.data;
+    
+    try {
+      let query = SELECT.from('com.sap.sf.compensation.AuditLog');
+      const conditions = [];
+      
+      if (companyId) conditions.push({ companyId: companyId });
+      if (userId) conditions.push({ userId: userId });
+      if (entityType) conditions.push({ entityType: entityType });
+      if (entityId) conditions.push({ entityId: entityId });
+      if (startDate) conditions.push({ timestamp: { '>=': startDate } });
+      if (endDate) conditions.push({ timestamp: { '<=': endDate } });
+      
+      if (conditions.length > 0) {
+        query = query.where(conditions.reduce((acc, cond) => ({ ...acc, ...cond }), {}));
+      }
+      
+      query = query.orderBy({ timestamp: 'desc' });
+      
+      const auditLogs = await cds.run(query);
+      return auditLogs;
+    } catch (error) {
+      req.error(500, `Failed to get audit logs: ${error.message}`);
+    }
+  });
+
+  // Generate Report
+  this.on('generateReport', async (req) => {
+    const { companyId, formId, reportType, startDate, endDate } = req.data;
+    
+    try {
+      let reportData = {};
+      
+      if (reportType === 'Summary') {
+        // Summary Report
+        const summary = await cds.run(
+          SELECT.from(CompensationWorksheet)
+            .columns('SUM(finalSalary) as totalSalary', 'COUNT(*) as employeeCount', 'AVG(meritIncrease) as avgMeritIncrease')
+            .where({ companyId: companyId, formId: formId })
+        );
+        
+        reportData = {
+          type: 'Summary',
+          totalSalary: summary[0]?.totalSalary || 0,
+          employeeCount: summary[0]?.employeeCount || 0,
+          avgMeritIncrease: summary[0]?.avgMeritIncrease || 0,
+          generatedAt: new Date().toISOString()
+        };
+      } else if (reportType === 'Detail') {
+        // Detail Report
+        const details = await cds.run(
+          SELECT.from(CompensationWorksheet)
+            .where({ companyId: companyId, formId: formId })
+        );
+        
+        reportData = {
+          type: 'Detail',
+          records: details,
+          count: details.length,
+          generatedAt: new Date().toISOString()
+        };
+      } else if (reportType === 'Compliance') {
+        // Compliance Report - Audit Logs
+        const compliance = await cds.run(
+          SELECT.from('com.sap.sf.compensation.AuditLog')
+            .where({ 
+              companyId: companyId,
+              action: { 'in': ['CREATE', 'UPDATE', 'DELETE'] }
+            })
+            .orderBy({ timestamp: 'desc' })
+        );
+        
+        reportData = {
+          type: 'Compliance',
+          auditLogs: compliance,
+          count: compliance.length,
+          generatedAt: new Date().toISOString()
+        };
+      }
+      
+      // Save report
+      const reportId = cds.utils.uuid();
+      await cds.run(
+        INSERT.into('com.sap.sf.compensation.CompensationReport').entries({
+          id: reportId,
+          reportName: `${reportType} Report - ${formId || 'All'}`,
+          reportType: reportType,
+          companyId: companyId,
+          formId: formId || '',
+          generatedBy: req.user?.id || 'System',
+          generatedAt: new Date().toISOString(),
+          reportData: JSON.stringify(reportData),
+          status: 'Generated',
+          exportFormat: 'JSON'
+        })
+      );
+      
+      return {
+        reportId: reportId,
+        reportData: reportData
+      };
+    } catch (error) {
+      req.error(500, `Failed to generate report: ${error.message}`);
+    }
+  });
+
+  // Export Report
+  this.on('exportReport', async (req) => {
+    const { reportId, format } = req.data;
+    
+    try {
+      const report = await cds.run(
+        SELECT.one.from('com.sap.sf.compensation.CompensationReport').where({ id: reportId })
+      );
+      
+      if (!report) {
+        req.error(404, 'Report not found');
+        return;
+      }
+      
+      const reportData = JSON.parse(report.reportData);
+      
+      if (format === 'CSV') {
+        // Convert to CSV format
+        const csv = convertToCSV(reportData);
+        return {
+          format: 'CSV',
+          data: csv,
+          filename: `${report.reportName}.csv`
+        };
+      }
+      
+      return {
+        format: format || 'JSON',
+        data: reportData,
+        filename: `${report.reportName}.${format?.toLowerCase() || 'json'}`
+      };
+    } catch (error) {
+      req.error(500, `Failed to export report: ${error.message}`);
+    }
+  });
+
+  // Helper function to convert to CSV
+  function convertToCSV(data) {
+    if (data.type === 'Detail' && data.records) {
+      const headers = Object.keys(data.records[0] || {});
+      const csvRows = [headers.join(',')];
+      
+      data.records.forEach(record => {
+        const values = headers.map(header => {
+          const value = record[header];
+          return typeof value === 'string' ? `"${value.replace(/"/g, '""')}"` : value;
+        });
+        csvRows.push(values.join(','));
+      });
+      
+      return csvRows.join('\n');
+    }
+    return JSON.stringify(data);
+  }
+
+  // Enhanced POST handler - Save to both DB and MDF
+  this.before('CREATE', CompensationWorksheet, async (req) => {
+    req.data.id = req.data.id || cds.utils.uuid();
+    req.data.lastModified = new Date().toISOString();
+    req.data.lastModifiedBy = req.data.userId || req.user?.id || 'System';
+  });
+
+  this.after('CREATE', CompensationWorksheet, async (data, req) => {
+    try {
+      // 1. Save to SuccessFactors MDF Object
+      await this.on('saveToMDFObject', {
+        data: {
+          companyId: data.companyId,
+          data: data
+        }
+      });
+      
+      // 2. Log audit trail
+      await this.on('logAudit', {
+        data: {
+          companyId: data.companyId,
+          userId: req.user?.id || data.userId,
+          action: 'CREATE',
+          entityType: 'Compensation',
+          entityId: data.id,
+          newValue: JSON.stringify(data),
+          timestamp: new Date().toISOString(),
+          ipAddress: req._?.req?.ip,
+          userAgent: req._?.req?.headers?.['user-agent']
+        }
+      });
+    } catch (error) {
+      console.error('Error in after CREATE:', error);
+    }
+  });
+
+  this.before('UPDATE', CompensationWorksheet, async (req) => {
+    // Get old value before update
+    try {
+      const oldRecord = await cds.run(
+        SELECT.one.from(CompensationWorksheet).where({ id: req.data.id })
+      );
+      req._oldValue = oldRecord;
+    } catch (error) {
+      console.error('Error getting old value:', error);
+    }
+    req.data.lastModified = new Date().toISOString();
+    req.data.lastModifiedBy = req.data.userId || req.user?.id || 'System';
+  });
+
+  this.after('UPDATE', CompensationWorksheet, async (data, req) => {
+    try {
+      // 1. Save to SuccessFactors MDF Object
+      await this.on('saveToMDFObject', {
+        data: {
+          companyId: data.companyId,
+          data: data
+        }
+      });
+      
+      // 2. Log audit trail with changes
+      const oldValue = req._oldValue;
+      const changes = {};
+      
+      if (oldValue) {
+        Object.keys(data).forEach(key => {
+          if (oldValue[key] !== data[key]) {
+            changes[key] = {
+              old: oldValue[key],
+              new: data[key]
+            };
+          }
+        });
+      }
+      
+      await this.on('logAudit', {
+        data: {
+          companyId: data.companyId,
+          userId: req.user?.id || data.userId,
+          action: 'UPDATE',
+          entityType: 'Compensation',
+          entityId: data.id,
+          oldValue: JSON.stringify(oldValue),
+          newValue: JSON.stringify(data),
+          changes: JSON.stringify(changes),
+          timestamp: new Date().toISOString(),
+          ipAddress: req._?.req?.ip,
+          userAgent: req._?.req?.headers?.['user-agent']
+        }
+      });
+    } catch (error) {
+      console.error('Error in after UPDATE:', error);
+    }
+  });
+
   // Save Workflow Configuration
   this.on('saveWorkflow', async (req) => {
     const { companyId, formId, workflow } = req.data;

@@ -79,4 +79,20 @@ service CompensationService {
   function checkUserRBP(companyId: String, userId: String, permission: String) returns RBPStatus;
   function getEmployeeDataByRBP(companyId: String, userId: String) returns array of EmployeeData;
   action saveWorkflow(companyId: String, formId: String, workflow: WorkflowConfig) returns WorkflowConfig;
+  
+  // Employee Data Extraction
+  function getEmployeeDataFromSF(companyId: String, userId: String, employeeId: String) returns EmployeeData;
+  
+  // MDF Object Integration
+  action saveToMDFObject(companyId: String, data: CompensationWorksheet) returns String;
+  function getFromMDFObject(companyId: String, employeeId: String, formId: String) returns CompensationWorksheet;
+  
+  // Audit and Reporting
+  function getAuditLogs(companyId: String, userId: String, entityType: String, startDate: DateTime, endDate: DateTime) returns array of AuditLog;
+  action generateReport(companyId: String, formId: String, reportType: String, startDate: DateTime, endDate: DateTime) returns CompensationReport;
+  action exportReport(reportId: UUID, format: String) returns String;
+  
+  // Entity projections for audit and reports
+  entity AuditLogs as projection on com.sap.sf.compensation.AuditLog;
+  entity Reports as projection on com.sap.sf.compensation.CompensationReport;
 }

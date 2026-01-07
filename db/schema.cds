@@ -53,6 +53,37 @@ entity Compensation {
   lastModifiedDate: DateTime;
 }
 
+// Audit Trail Entity for Compliance
+entity AuditLog {
+  key id: UUID;
+  companyId: String(20);
+  userId: String(100);
+  action: String(50); // CREATE, UPDATE, DELETE, VIEW, EXPORT
+  entityType: String(50); // Compensation, Employee, Workflow
+  entityId: String(100);
+  oldValue: String(5000);
+  newValue: String(5000);
+  timestamp: DateTime;
+  ipAddress: String(50);
+  userAgent: String(500);
+  sessionId: String(100);
+  changes: String(5000); // JSON of changed fields
+}
+
+// Reporting Entity
+entity CompensationReport {
+  key id: UUID;
+  reportName: String(200);
+  reportType: String(50); // Summary, Detail, Compliance, Audit
+  companyId: String(20);
+  formId: String(100);
+  generatedBy: String(100);
+  generatedAt: DateTime;
+  reportData: LargeString; // JSON or CSV
+  status: String(50); // Generated, Exported, Archived
+  exportFormat: String(50); // JSON, CSV, PDF, Excel
+}
+
 // Workflow Status Structure
 type WorkflowStatus {
   companyId: String(20);
