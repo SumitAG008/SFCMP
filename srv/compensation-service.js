@@ -467,10 +467,6 @@ module.exports = cds.service.impl(async function() {
     
     return assigneeMap[role] || { name: role, photo: "sap-icon://employee", id: "" };
   }
-    } catch (error) {
-      req.error(500, `Failed to fetch workflow status: ${error.message}`);
-    }
-  });
 
   // Save Workflow Configuration
   this.on('saveWorkflow', async (req) => {
