@@ -1,7 +1,7 @@
-using { Compensation } from '../db/schema';
+using { com.sap.sf.compensation.Compensation } from '../db/schema';
 
 service CompensationService {
-  entity CompensationWorksheet as projection on Compensation;
+  entity CompensationWorksheet as projection on com.sap.sf.compensation.Compensation;
   
   // Custom functions for SuccessFactors integration
   function getCompensationData(companyId: String, userId: String) returns array of CompensationWorksheet;
