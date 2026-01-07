@@ -31,7 +31,7 @@
     "rootView": {
       "viewName": "com.sap.sf.compensation.view.CompensationWorksheet",
       "type": "XML",
-      "async": false,
+      "async": true,
       "id": "CompensationWorksheet"
     },
     "dependencies": {

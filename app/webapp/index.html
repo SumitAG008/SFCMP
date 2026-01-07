@@ -10,24 +10,31 @@
         data-sap-ui-libs="sap.m,sap.ui.table,sap.ui.core"
         data-sap-ui-resourceroots='{"com.sap.sf.compensation": "./"}'
         data-sap-ui-compatVersion="edge"
-        data-sap-ui-async="false">
+        data-sap-ui-async="true">
     </script>
     <link rel="stylesheet" type="text/css" href="css/custom.css">
     <script>
         sap.ui.getCore().attachInit(function() {
-            // Create component manually
+            // Create component asynchronously using Component.create()
             sap.ui.require([
-                "sap/ui/core/ComponentContainer"
-            ], function(ComponentContainer) {
-                // Create component container
-                var oComponentContainer = new ComponentContainer({
+                "sap/ui/core/Component"
+            ], function(Component) {
+                // Create component asynchronously
+                Component.create({
                     name: "com.sap.sf.compensation",
-                    id: "compensationContainer",
-                    settings: {
-                        id: "compensation"
-                    }
+                    id: "compensation"
+                }).then(function(oComponent) {
+                    // Create container and place component
+                    sap.ui.require([
+                        "sap/ui/core/ComponentContainer"
+                    ], function(ComponentContainer) {
+                        var oContainer = new ComponentContainer({
+                            component: oComponent,
+                            id: "compensationContainer"
+                        });
+                        oContainer.placeAt("content");
+                    });
                 });
-                oComponentContainer.placeAt("content");
             });
         });
     </script>
