@@ -394,9 +394,31 @@ sap.ui.define([
             // Create workflow config model if not exists
             if (!this.getView().getModel("workflowConfig")) {
                 var oWorkflowConfigModel = new JSONModel({
+                    workflowId: "WF_" + new Date().getTime(),
                     workflowName: "Compensation Approval Workflow",
+                    workflowType: "COMPENSATION",
+                    status: "DRAFT",
+                    companyId: oModel.getProperty("/companyId") || "SFHUB003674",
                     formId: oModel.getProperty("/formId") || "",
                     description: "Standard compensation approval workflow",
+                    // Advanced Settings
+                    autoApprovalThreshold: 0,
+                    requireAllApprovers: false,
+                    allowParallelApproval: false,
+                    enableEscalation: true,
+                    escalationDays: 3,
+                    maxApprovalDays: 14,
+                    // Notifications
+                    sendEmailNotifications: true,
+                    notifyOnStepStart: true,
+                    notifyOnStepComplete: true,
+                    notifyOnEscalation: true,
+                    emailTemplate: "STANDARD",
+                    // Integration
+                    syncWithSF: true,
+                    sfWorkflowId: "",
+                    enableAuditTrail: true,
+                    auditRetentionDays: 365,
                     steps: [
                         {
                             stepNumber: 1,
@@ -405,7 +427,11 @@ sap.ui.define([
                             statusState: "Success",
                             assigneeRole: "Initiator",
                             icon: "sap-icon://initiative",
-                            description: "Compensation form created and submitted"
+                            description: "Compensation form created and submitted",
+                            dueDays: 0,
+                            required: true,
+                            conditions: "",
+                            escalationEnabled: false
                         },
                         {
                             stepNumber: 2,
@@ -414,7 +440,11 @@ sap.ui.define([
                             statusState: "None",
                             assigneeRole: "Direct Manager",
                             icon: "sap-icon://manager",
-                            description: "Direct manager reviews and approves compensation"
+                            description: "Direct manager reviews and approves compensation",
+                            dueDays: 3,
+                            required: true,
+                            conditions: "",
+                            escalationEnabled: true
                         },
                         {
                             stepNumber: 3,
@@ -423,7 +453,11 @@ sap.ui.define([
                             statusState: "None",
                             assigneeRole: "HR Manager",
                             icon: "sap-icon://employee",
-                            description: "HR reviews compensation for compliance"
+                            description: "HR reviews compensation for compliance",
+                            dueDays: 2,
+                            required: true,
+                            conditions: "",
+                            escalationEnabled: true
                         },
                         {
                             stepNumber: 4,
@@ -432,7 +466,11 @@ sap.ui.define([
                             statusState: "None",
                             assigneeRole: "Finance Director",
                             icon: "sap-icon://money-bills",
-                            description: "Finance reviews budget and approves"
+                            description: "Finance reviews budget and approves",
+                            dueDays: 3,
+                            required: true,
+                            conditions: "amount > 10000",
+                            escalationEnabled: true
                         },
                         {
                             stepNumber: 5,
@@ -441,7 +479,11 @@ sap.ui.define([
                             statusState: "None",
                             assigneeRole: "VP of HR",
                             icon: "sap-icon://approvals",
-                            description: "Senior management final approval"
+                            description: "Senior management final approval",
+                            dueDays: 5,
+                            required: false,
+                            conditions: "amount > 50000",
+                            escalationEnabled: true
                         },
                         {
                             stepNumber: 6,
@@ -450,7 +492,11 @@ sap.ui.define([
                             statusState: "None",
                             assigneeRole: "System",
                             icon: "sap-icon://accept",
-                            description: "Compensation approved and processed"
+                            description: "Compensation approved and processed",
+                            dueDays: 0,
+                            required: true,
+                            conditions: "",
+                            escalationEnabled: false
                         }
                     ]
                 });
@@ -582,6 +628,21 @@ sap.ui.define([
             var oWorkflowData = oWorkflowConfigModel.getData();
             var oCompModel = oView.getModel("compensation");
             
+            // Validation
+            if (!oWorkflowData.workflowName) {
+                MessageBox.warning("Please enter workflow name");
+                return;
+            }
+            
+            if (!oWorkflowData.steps || oWorkflowData.steps.length === 0) {
+                MessageBox.warning("Please add at least one workflow step");
+                return;
+            }
+            
+            // Set status to ACTIVE
+            oWorkflowData.status = "ACTIVE";
+            oWorkflowConfigModel.setProperty("/status", "ACTIVE");
+            
             // Show busy indicator
             oView.setBusy(true);
             
@@ -599,7 +660,7 @@ sap.ui.define([
                 contentType: "application/json",
                 data: JSON.stringify(oPayload),
                 success: function (response) {
-                    MessageToast.show("Workflow saved successfully");
+                    MessageToast.show("Workflow saved and activated successfully");
                     oView.setBusy(false);
                     this._oWorkflowConfigDialog.close();
                 }.bind(this),

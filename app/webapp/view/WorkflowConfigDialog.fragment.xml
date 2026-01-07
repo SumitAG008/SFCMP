@@ -1,74 +1,223 @@
-<core:FragmentDefinition xmlns="sap.m" xmlns:core="sap.ui.core" xmlns:form="sap.ui.layout.form">
-    <Dialog id="workflowConfigDialog" title="Configure Workflow" contentWidth="800px" contentHeight="600px" resizable="true">
+<core:FragmentDefinition xmlns="sap.m" xmlns:core="sap.ui.core" xmlns:form="sap.ui.layout.form" xmlns:table="sap.ui.table">
+    <Dialog id="workflowConfigDialog" title="Workflow Builder - Advanced Configuration" contentWidth="1200px" contentHeight="800px" resizable="true" draggable="true">
         <content>
-            <VBox class="sapUiSmallMargin">
-                <!-- Workflow Configuration -->
-                <Panel headerText="Workflow Settings" expandable="false" class="sapUiNoContentPadding">
-                    <form:SimpleForm layout="ResponsiveGridLayout" editable="true">
-                        <form:content>
-                            <Label text="Workflow Name"/>
-                            <Input id="workflowNameInput" value="{workflowConfig>/workflowName}" placeholder="Enter workflow name"/>
-                            <Label text="Description"/>
-                            <TextArea id="workflowDescInput" value="{workflowConfig>/description}" rows="2" placeholder="Enter workflow description"/>
-                            <Label text="Form ID"/>
-                            <Input id="workflowFormIdInput" value="{workflowConfig>/formId}" placeholder="Enter Form ID"/>
-                        </form:content>
-                    </form:SimpleForm>
-                </Panel>
+            <IconTabBar id="workflowConfigTabs" class="sapUiResponsiveContentPadding">
+                <!-- Basic Configuration Tab -->
+                <items>
+                    <IconTabFilter text="Basic Settings" icon="sap-icon://settings">
+                        <VBox class="sapUiSmallMargin">
+                            <Panel headerText="Workflow Basic Information" expandable="false" class="sapUiNoContentPadding">
+                                <form:SimpleForm layout="ResponsiveGridLayout" editable="true">
+                                    <form:content>
+                                        <Label text="Workflow Name" required="true"/>
+                                        <Input id="workflowNameInput" value="{workflowConfig>/workflowName}" placeholder="Enter workflow name" liveChange="onWorkflowNameChange"/>
+                                        <Label text="Workflow ID"/>
+                                        <Input id="workflowIdInput" value="{workflowConfig>/workflowId}" placeholder="Auto-generated" editable="false"/>
+                                        <Label text="Description"/>
+                                        <TextArea id="workflowDescInput" value="{workflowConfig>/description}" rows="3" placeholder="Enter workflow description"/>
+                                        <Label text="Company ID"/>
+                                        <Input id="companyIdInput" value="{workflowConfig>/companyId}" placeholder="SFHUB003674"/>
+                                        <Label text="Form ID"/>
+                                        <Input id="workflowFormIdInput" value="{workflowConfig>/formId}" placeholder="Enter Form ID"/>
+                                        <Label text="Workflow Type"/>
+                                        <Select id="workflowTypeSelect" selectedKey="{workflowConfig>/workflowType}">
+                                            <core:Item key="COMPENSATION" text="Compensation Approval"/>
+                                            <core:Item key="BUDGET" text="Budget Approval"/>
+                                            <core:Item key="GENERAL" text="General Approval"/>
+                                        </Select>
+                                        <Label text="Status"/>
+                                        <Select id="workflowStatusSelect" selectedKey="{workflowConfig>/status}">
+                                            <core:Item key="ACTIVE" text="Active"/>
+                                            <core:Item key="INACTIVE" text="Inactive"/>
+                                            <core:Item key="DRAFT" text="Draft"/>
+                                        </Select>
+                                    </form:content>
+                                </form:SimpleForm>
+                            </Panel>
+                        </VBox>
+                    </IconTabFilter>
 
-                <!-- Workflow Steps Configuration -->
-                <Panel headerText="Workflow Steps" expandable="false" class="sapUiNoContentPadding">
-                    <VBox class="sapUiSmallMargin">
-                        <HBox justifyContent="End" class="sapUiSmallMarginBottom">
-                            <Button text="Add Step" icon="sap-icon://add" press="onAddWorkflowStep" type="Transparent"/>
-                        </HBox>
-                        
-                        <List id="workflowStepsList" 
-                            items="{workflowConfig>/steps}"
-                            mode="None"
-                            class="workflow-steps-list">
-                            <CustomListItem>
+                    <!-- Workflow Steps Configuration Tab -->
+                    <IconTabFilter text="Workflow Steps" icon="sap-icon://workflow-tasks" count="{workflowConfig>/steps/length}">
+                        <VBox class="sapUiSmallMargin">
+                            <Panel headerText="Configure Workflow Steps" expandable="false" class="sapUiNoContentPadding">
                                 <VBox class="sapUiSmallMargin">
-                                    <HBox alignItems="Center" justifyContent="SpaceBetween">
-                                        <HBox alignItems="Center">
-                                            <core:Icon src="sap-icon://drag" size="1.5rem" class="sapUiTinyMarginEnd drag-handle"/>
-                                            <Title text="{workflowConfig>stepNumber}. {workflowConfig>stepName}" level="H5"/>
-                                        </HBox>
-                                        <HBox>
-                                            <Button icon="sap-icon://edit" press="onEditWorkflowStep" tooltip="Edit Step" type="Transparent" class="sapUiTinyMarginEnd"/>
-                                            <Button icon="sap-icon://delete" press="onDeleteWorkflowStep" tooltip="Delete Step" type="Reject" type="Transparent"/>
-                                        </HBox>
+                                    <HBox justifyContent="SpaceBetween" alignItems="Center" class="sapUiSmallMarginBottom">
+                                        <Text text="Define the sequence of approval steps. Drag to reorder." class="sapUiSmallMarginEnd"/>
+                                        <Button text="Add Step" icon="sap-icon://add" press="onAddWorkflowStep" type="Emphasized"/>
+                                        <Button text="Import Template" icon="sap-icon://download" press="onImportWorkflowTemplate" type="Transparent"/>
+                                        <Button text="Export Template" icon="sap-icon://upload" press="onExportWorkflowTemplate" type="Transparent"/>
                                     </HBox>
                                     
-                                    <form:SimpleForm layout="ResponsiveGridLayout" editable="false" class="sapUiSmallMarginTop">
-                                        <form:content>
-                                            <Label text="Assignee Role"/>
-                                            <Text text="{workflowConfig>assigneeRole}"/>
-                                            <Label text="Status"/>
-                                            <ObjectStatus text="{workflowConfig>status}" state="{workflowConfig>statusState}"/>
-                                            <Label text="Icon"/>
-                                            <core:Icon src="{workflowConfig>icon}" size="1.5rem"/>
-                                        </form:content>
-                                    </form:SimpleForm>
+                                    <table:Table id="workflowStepsTable" 
+                                        rows="{workflowConfig>/steps}"
+                                        selectionMode="MultiToggle"
+                                        visibleRowCount="8"
+                                        enableColumnReordering="true"
+                                        class="sapUiSizeCompact">
+                                        <table:extension>
+                                            <OverflowToolbar>
+                                                <Title text="Workflow Steps"/>
+                                                <ToolbarSpacer/>
+                                                <Button icon="sap-icon://sort" press="onSortSteps" tooltip="Sort Steps"/>
+                                                <Button icon="sap-icon://delete" press="onDeleteSelectedSteps" tooltip="Delete Selected"/>
+                                            </OverflowToolbar>
+                                        </table:extension>
+                                        <table:columns>
+                                            <table:Column width="60px">
+                                                <Label text="#"/>
+                                                <table:template>
+                                                    <Text text="{workflowConfig>stepNumber}"/>
+                                                </table:template>
+                                            </table:Column>
+                                            <table:Column width="200px">
+                                                <Label text="Step Name"/>
+                                                <table:template>
+                                                    <Input value="{workflowConfig>stepName}" liveChange="onStepNameChange"/>
+                                                </table:template>
+                                            </table:Column>
+                                            <table:Column width="150px">
+                                                <Label text="Assignee Role"/>
+                                                <table:template>
+                                                    <Input value="{workflowConfig>assigneeRole}" placeholder="e.g., Manager"/>
+                                                </table:template>
+                                            </table:Column>
+                                            <table:Column width="120px">
+                                                <Label text="Icon"/>
+                                                <table:template>
+                                                    <Select selectedKey="{workflowConfig>icon}" width="100%">
+                                                        <core:Item key="sap-icon://initiative" text="Initiative"/>
+                                                        <core:Item key="sap-icon://manager" text="Manager"/>
+                                                        <core:Item key="sap-icon://employee" text="Employee"/>
+                                                        <core:Item key="sap-icon://money-bills" text="Finance"/>
+                                                        <core:Item key="sap-icon://approvals" text="Approval"/>
+                                                        <core:Item key="sap-icon://accept" text="Completed"/>
+                                                    </Select>
+                                                </table:template>
+                                            </table:Column>
+                                            <table:Column width="120px">
+                                                <Label text="Initial Status"/>
+                                                <table:template>
+                                                    <Select selectedKey="{workflowConfig>status}">
+                                                        <core:Item key="Pending" text="Pending"/>
+                                                        <core:Item key="In Progress" text="In Progress"/>
+                                                        <core:Item key="Completed" text="Completed"/>
+                                                    </Select>
+                                                </table:template>
+                                            </table:Column>
+                                            <table:Column width="100px">
+                                                <Label text="Due Days"/>
+                                                <table:template>
+                                                    <Input value="{workflowConfig>dueDays}" type="Number" placeholder="7"/>
+                                                </table:template>
+                                            </table:Column>
+                                            <table:Column width="100px">
+                                                <Label text="Required"/>
+                                                <table:template>
+                                                    <CheckBox selected="{workflowConfig>required}"/>
+                                                </table:template>
+                                            </table:Column>
+                                            <table:Column width="80px">
+                                                <Label text="Actions"/>
+                                                <table:template>
+                                                    <Button icon="sap-icon://edit" press="onEditWorkflowStep" tooltip="Edit Details" type="Transparent"/>
+                                                </table:template>
+                                            </table:Column>
+                                        </table:columns>
+                                    </table:Table>
                                 </VBox>
-                            </CustomListItem>
-                        </List>
-                    </VBox>
-                </Panel>
+                            </Panel>
+                        </VBox>
+                    </IconTabFilter>
 
-                <!-- Preview Section -->
-                <Panel headerText="Preview" expandable="true" expanded="false" class="sapUiNoContentPadding">
-                    <VBox class="sapUiSmallMargin">
-                        <Text text="Workflow will be displayed as:" class="sapUiSmallMarginBottom"/>
-                        <Button text="Preview Workflow" icon="sap-icon://preview" press="onPreviewWorkflowFromDialog" type="Transparent"/>
-                    </VBox>
-                </Panel>
-            </VBox>
+                    <!-- Advanced Settings Tab -->
+                    <IconTabFilter text="Advanced Settings" icon="sap-icon://action-settings">
+                        <VBox class="sapUiSmallMargin">
+                            <Panel headerText="Workflow Rules & Conditions" expandable="true" expanded="true" class="sapUiNoContentPadding">
+                                <form:SimpleForm layout="ResponsiveGridLayout" editable="true">
+                                    <form:content>
+                                        <Label text="Auto-Approval Threshold"/>
+                                        <Input id="autoApprovalThreshold" value="{workflowConfig>/autoApprovalThreshold}" type="Number" placeholder="Amount in currency"/>
+                                        <Label text="Require All Approvers"/>
+                                        <CheckBox selected="{workflowConfig>/requireAllApprovers}"/>
+                                        <Label text="Allow Parallel Approval"/>
+                                        <CheckBox selected="{workflowConfig>/allowParallelApproval}"/>
+                                        <Label text="Enable Escalation"/>
+                                        <CheckBox selected="{workflowConfig>/enableEscalation}"/>
+                                        <Label text="Escalation Days"/>
+                                        <Input id="escalationDays" value="{workflowConfig>/escalationDays}" type="Number" placeholder="Days before escalation"/>
+                                        <Label text="Max Approval Days"/>
+                                        <Input id="maxApprovalDays" value="{workflowConfig>/maxApprovalDays}" type="Number" placeholder="Maximum days for approval"/>
+                                    </form:content>
+                                </form:SimpleForm>
+                            </Panel>
+
+                            <Panel headerText="Notifications" expandable="true" expanded="true" class="sapUiNoContentPadding sapUiSmallMarginTop">
+                                <form:SimpleForm layout="ResponsiveGridLayout" editable="true">
+                                    <form:content>
+                                        <Label text="Send Email Notifications"/>
+                                        <CheckBox selected="{workflowConfig>/sendEmailNotifications}"/>
+                                        <Label text="Notify on Step Start"/>
+                                        <CheckBox selected="{workflowConfig>/notifyOnStepStart}"/>
+                                        <Label text="Notify on Step Complete"/>
+                                        <CheckBox selected="{workflowConfig>/notifyOnStepComplete}"/>
+                                        <Label text="Notify on Escalation"/>
+                                        <CheckBox selected="{workflowConfig>/notifyOnEscalation}"/>
+                                        <Label text="Email Template"/>
+                                        <Select id="emailTemplateSelect" selectedKey="{workflowConfig>/emailTemplate}">
+                                            <core:Item key="STANDARD" text="Standard Template"/>
+                                            <core:Item key="CUSTOM" text="Custom Template"/>
+                                        </Select>
+                                    </form:content>
+                                </form:SimpleForm>
+                            </Panel>
+
+                            <Panel headerText="Approval Matrix" expandable="true" expanded="false" class="sapUiNoContentPadding sapUiSmallMarginTop">
+                                <VBox class="sapUiSmallMargin">
+                                    <Text text="Configure approval matrix based on amount ranges or employee levels" class="sapUiSmallMarginBottom"/>
+                                    <Button text="Configure Approval Matrix" icon="sap-icon://grid" press="onConfigureApprovalMatrix" type="Transparent"/>
+                                </VBox>
+                            </Panel>
+
+                            <Panel headerText="Integration Settings" expandable="true" expanded="false" class="sapUiNoContentPadding sapUiSmallMarginTop">
+                                <form:SimpleForm layout="ResponsiveGridLayout" editable="true">
+                                    <form:content>
+                                        <Label text="Sync with SuccessFactors"/>
+                                        <CheckBox selected="{workflowConfig>/syncWithSF}"/>
+                                        <Label text="SF Workflow ID"/>
+                                        <Input id="sfWorkflowId" value="{workflowConfig>/sfWorkflowId}" placeholder="SuccessFactors Workflow ID"/>
+                                        <Label text="Enable Audit Trail"/>
+                                        <CheckBox selected="{workflowConfig>/enableAuditTrail}"/>
+                                        <Label text="Audit Retention Days"/>
+                                        <Input id="auditRetentionDays" value="{workflowConfig>/auditRetentionDays}" type="Number" placeholder="Days to retain audit logs"/>
+                                    </form:content>
+                                </form:SimpleForm>
+                            </Panel>
+                        </VBox>
+                    </IconTabFilter>
+
+                    <!-- Preview Tab -->
+                    <IconTabFilter text="Preview" icon="sap-icon://preview">
+                        <VBox class="sapUiSmallMargin">
+                            <Panel headerText="Workflow Preview" expandable="false" class="sapUiNoContentPadding">
+                                <VBox class="sapUiSmallMargin">
+                                    <Text text="Preview of how the workflow will look:" class="sapUiSmallMarginBottom"/>
+                                    <Button text="Preview Workflow Visualization" icon="sap-icon://preview" press="onPreviewWorkflowFromDialog" type="Emphasized" class="sapUiSmallMarginBottom"/>
+                                    <Text text="Workflow Name: {workflowConfig>/workflowName}" class="sapUiTextBold sapUiSmallMarginTop"/>
+                                    <Text text="Total Steps: {workflowConfig>/steps/length}" class="sapUiSmallMarginTop"/>
+                                    <Text text="Status: {workflowConfig>/status}" class="sapUiSmallMarginTop"/>
+                                </VBox>
+                            </Panel>
+                        </VBox>
+                    </IconTabFilter>
+                </items>
+            </IconTabBar>
         </content>
         <beginButton>
-            <Button text="Save" type="Emphasized" press="onSaveWorkflowConfig"/>
+            <Button text="Save & Activate" type="Emphasized" press="onSaveWorkflowConfig"/>
         </beginButton>
         <endButton>
+            <Button text="Save as Draft" press="onSaveWorkflowDraft"/>
             <Button text="Cancel" press="onCloseWorkflowConfigDialog"/>
         </endButton>
     </Dialog>
