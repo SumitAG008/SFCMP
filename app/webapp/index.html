@@ -117,7 +117,7 @@
                     } else {
                         // No rootView, create it manually
                         console.log("No rootView in component, creating manually...");
-                        return View.create({
+                        View.create({
                             viewName: "com.sap.sf.compensation.view.CompensationWorksheet",
                             type: ViewType.XML,
                             id: "manualView"
@@ -130,6 +130,8 @@
                                 oView.setModel(oCompModel, "compensation");
                             }
                             console.log("View placed and model set");
+                        }).catch(function(viewError) {
+                            console.error("Manual view creation failed:", viewError);
                         });
                     }
                 }).catch(function(error) {
