@@ -28,6 +28,12 @@
   },
   "sap.ui5": {
     "flexEnabled": false,
+    "rootView": {
+      "viewName": "com.sap.sf.compensation.view.CompensationWorksheet",
+      "type": "XML",
+      "async": false,
+      "id": "CompensationWorksheet"
+    },
     "dependencies": {
       "minUI5Version": "1.60.0",
       "libs": {
