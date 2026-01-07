@@ -57,7 +57,7 @@ sap.ui.define([
             oView.setBusy(true);
 
             // Call workflow API to get real-time workflow status
-            var sServiceUrl = "/odata/v4/compensation/CompensationService/getWorkflowStatus";
+            var sServiceUrl = "/compensation/CompensationService/getWorkflowStatus";
             var oPayload = {
                 companyId: sCompanyId,
                 formId: sFormId

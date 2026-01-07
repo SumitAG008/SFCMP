@@ -235,7 +235,7 @@ sap.ui.define([
             oView.setBusy(true);
             
             // Save workflow to backend
-            var sServiceUrl = "/odata/v4/compensation/CompensationService/saveWorkflow";
+            var sServiceUrl = "/compensation/CompensationService/saveWorkflow";
             var oPayload = {
                 companyId: oWorkflowData.companyId,
                 formId: oWorkflowData.formId,
