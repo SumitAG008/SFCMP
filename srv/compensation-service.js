@@ -1,6 +1,7 @@
 const cds = require('@sap/cds');
 const axios = require('axios');
 const xsenv = require('@sap/xsenv');
+const rbpService = require('./rbp-service');
 
 module.exports = cds.service.impl(async function() {
   const { CompensationWorksheet } = this.entities;
@@ -89,6 +90,14 @@ module.exports = cds.service.impl(async function() {
     const { companyId, userId, formId } = req.data;
     
     try {
+      // Check RBP permissions first
+      const rbpCheck = await rbpService.checkUserRBP(userId, companyId, 'COMPENSATION_VIEW');
+      if (!rbpCheck.hasPermission) {
+        req.error(403, `User ${userId} does not have permission to view compensation data. Required permission: COMPENSATION_VIEW`);
+        return;
+      }
+      
+      console.log(`User ${userId} has RBP permission: ${rbpCheck.permissionType}, Role: ${rbpCheck.role}`);
       // Call SuccessFactors Employee Compensation API v1
       // API Reference: https://api.sap.com/api/sap-sf-employeeCompensation-v1/resource/Employee_Compensation
       let endpoint = `/odata/v2/Employee_Compensation`;
@@ -155,6 +164,14 @@ module.exports = cds.service.impl(async function() {
     const { companyId, userId, data } = req.data;
     
     try {
+      // Check RBP permissions for edit
+      const rbpCheck = await rbpService.checkUserRBP(userId, companyId, 'COMPENSATION_EDIT');
+      if (!rbpCheck.hasPermission) {
+        req.error(403, `User ${userId} does not have permission to edit compensation data. Required permission: COMPENSATION_EDIT`);
+        return;
+      }
+      
+      console.log(`User ${userId} has edit permission: ${rbpCheck.permissionType}`);
       const results = [];
       
       for (const item of data) {

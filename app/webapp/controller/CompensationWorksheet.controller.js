@@ -73,26 +73,80 @@ sap.ui.define([
             // Show busy indicator
             oView.setBusy(true);
 
-            // Call GET API
-            var sServiceUrl = "/compensation/CompensationService/getCompensationData";
-            var oPayload = {
+            // First check RBP permissions
+            var sRBPUrl = "/compensation/CompensationService/checkUserRBP";
+            var oRBPPayload = {
                 companyId: sCompanyId,
-                userId: sUserId
+                userId: sUserId,
+                permission: "COMPENSATION_VIEW"
             };
 
             $.ajax({
-                url: sServiceUrl,
+                url: sRBPUrl,
                 method: "POST",
                 contentType: "application/json",
-                data: JSON.stringify(oPayload),
-                success: function (data) {
-                    oModel.setProperty("/CompensationWorksheet", data || []);
-                    MessageToast.show("Data loaded successfully");
-                    oView.setBusy(false);
+                data: JSON.stringify(oRBPPayload),
+                success: function (rbpResult) {
+                    if (!rbpResult.hasPermission) {
+                        MessageBox.error("Access Denied: " + rbpResult.message + "\n\nRequired Role: " + rbpResult.role);
+                        oView.setBusy(false);
+                        return;
+                    }
+
+                    // RBP check passed, now get employee data
+                    var sEmployeeUrl = "/compensation/CompensationService/getEmployeeDataByRBP";
+                    var oEmployeePayload = {
+                        companyId: sCompanyId,
+                        userId: sUserId
+                    };
+
+                    $.ajax({
+                        url: sEmployeeUrl,
+                        method: "POST",
+                        contentType: "application/json",
+                        data: JSON.stringify(oEmployeePayload),
+                        success: function (employeeData) {
+                            console.log("Employee data from SuccessFactors:", employeeData);
+                            // Store employee data for reference
+                            oModel.setProperty("/availableEmployees", employeeData);
+                        },
+                        error: function (error) {
+                            console.warn("Could not load employee data:", error);
+                        }
+                    });
+
+                    // Now get compensation data
+                    var sServiceUrl = "/compensation/CompensationService/getCompensationData";
+                    var oPayload = {
+                        companyId: sCompanyId,
+                        userId: sUserId
+                    };
+
+                    $.ajax({
+                        url: sServiceUrl,
+                        method: "POST",
+                        contentType: "application/json",
+                        data: JSON.stringify(oPayload),
+                        success: function (data) {
+                            oModel.setProperty("/CompensationWorksheet", data || []);
+                            MessageToast.show("Data loaded successfully (RBP: " + rbpResult.permissionType + ")");
+                            oView.setBusy(false);
+                        },
+                        error: function (error) {
+                            console.error("Error loading data:", error);
+                            var sErrorMsg = error.responseJSON?.error?.message || error.statusText;
+                            if (error.status === 403) {
+                                MessageBox.error("Access Denied: " + sErrorMsg);
+                            } else {
+                                MessageBox.error("Failed to load compensation data: " + sErrorMsg);
+                            }
+                            oView.setBusy(false);
+                        }
+                    });
                 },
                 error: function (error) {
-                    console.error("Error loading data:", error);
-                    MessageBox.error("Failed to load compensation data: " + (error.responseJSON?.error?.message || error.statusText));
+                    console.error("Error checking RBP:", error);
+                    MessageBox.error("Failed to verify permissions: " + (error.responseJSON?.error?.message || error.statusText));
                     oView.setBusy(false);
                 }
             });
@@ -109,6 +163,30 @@ sap.ui.define([
                 MessageBox.warning("Please enter Company ID and User ID");
                 return;
             }
+
+            // Check RBP edit permission before saving
+            var sRBPUrl = "/compensation/CompensationService/checkUserRBP";
+            var oRBPPayload = {
+                companyId: sCompanyId,
+                userId: sUserId,
+                permission: "COMPENSATION_EDIT"
+            };
+
+            oView.setBusy(true);
+
+            $.ajax({
+                url: sRBPUrl,
+                method: "POST",
+                contentType: "application/json",
+                data: JSON.stringify(oRBPPayload),
+                success: function (rbpResult) {
+                    if (!rbpResult.hasPermission) {
+                        MessageBox.error("Access Denied: " + rbpResult.message + "\n\nRequired Role: " + rbpResult.role);
+                        oView.setBusy(false);
+                        return;
+                    }
+
+                    // RBP check passed, proceed with save
 
             if (!aData || aData.length === 0) {
                 MessageBox.warning("No data to save");

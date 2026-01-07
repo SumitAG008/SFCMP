@@ -86,4 +86,29 @@ entity Compensation {
     finalSalary: Decimal(15, 2);
     status: String(50);
   }
+
+  // RBP (Role-Based Permissions) Types
+  type RBPStatus {
+    hasPermission: Boolean;
+    userId: String(100);
+    companyId: String(20);
+    permission: String(100);
+    role: String(200);
+    permissionType: String(100);
+    message: String(500);
+  }
+
+  type EmployeeData {
+    employeeId: String(100);
+    employeeName: String(200);
+    firstName: String(100);
+    lastName: String(100);
+    email: String(200);
+    photo: String(500);
+    department: String(200);
+    jobTitle: String(200);
+    position: String(200);
+    managerId: String(100);
+    managerName: String(200);
+  }
 }
