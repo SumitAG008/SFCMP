@@ -25,8 +25,16 @@ sap.ui.define([
                 CompensationWorksheet: []
             });
             this.setModel(oCompensationModel, "compensation");
-            
-            // DO NOT initialize router - we're using rootView directly
+        },
+        
+        createContent: function() {
+            // Explicitly create the root view
+            var oView = sap.ui.view({
+                viewName: "com.sap.sf.compensation.view.CompensationWorksheet",
+                type: sap.ui.core.mvc.ViewType.XML,
+                id: this.createId("CompensationWorksheet")
+            });
+            return oView;
         }
     });
 });
