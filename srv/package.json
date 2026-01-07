@@ -1,0 +1,10 @@
+{
+  "name": "compensation-service",
+  "version": "1.0.0",
+  "dependencies": {
+    "@sap/cds": "^7",
+    "express": "^4.18",
+    "axios": "^1.6.0",
+    "@sap/xssec": "^4"
+  }
+}

@@ -1,0 +1,49 @@
+name: Deploy to SAP BTP
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm install
+      
+      - name: Install MTA Build Tool
+        run: npm install -g mbt
+      
+      - name: Build MTA Archive
+        run: mbt build
+      
+      - name: Deploy to Cloud Foundry
+        env:
+          CF_API: ${{ secrets.CF_API }}
+          CF_ORG: ${{ secrets.CF_ORG }}
+          CF_SPACE: ${{ secrets.CF_SPACE }}
+          CF_USERNAME: ${{ secrets.CF_USERNAME }}
+          CF_PASSWORD: ${{ secrets.CF_PASSWORD }}
+        run: |
+          echo "Deploying to SAP BTP..."
+          cf login -a "$CF_API" -u "$CF_USERNAME" -p "$CF_PASSWORD" -o "$CF_ORG" -s "$CF_SPACE" --skip-ssl-validation
+          cf deploy mta_archives/*.mtar
+      
+      - name: Deployment Status
+        if: always()
+        run: |
+          echo "Deployment completed. Check Cloud Foundry for application status."

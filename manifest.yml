@@ -1,0 +1,25 @@
+---
+applications:
+  - name: compensation-service
+    path: srv
+    memory: 512M
+    instances: 1
+    buildpacks:
+      - nodejs_buildpack
+    services:
+      - compensation-db
+      - successfactors-credentials
+    env:
+      NODE_ENV: production
+      TARGET_RUNTIME: nodejs
+    routes:
+      - route: compensation-service-${CF_SPACE}.us10-001.cfapps.us10-001.hana.ondemand.com
+
+  - name: compensation-app
+    path: app
+    memory: 128M
+    instances: 1
+    buildpacks:
+      - staticfile_buildpack
+    routes:
+      - route: compensation-app-${CF_SPACE}.us10-001.cfapps.us10-001.hana.ondemand.com

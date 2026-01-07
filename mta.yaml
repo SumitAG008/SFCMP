@@ -1,0 +1,45 @@
+_schema-version: '3.1'
+ID: successfactors-compensation-extension
+version: 1.0.0
+description: SuccessFactors Compensation Extension on SAP BTP
+
+modules:
+  - name: compensation-service
+    type: nodejs
+    path: srv
+    parameters:
+      buildpack: nodejs_buildpack
+    provides:
+      - name: compensation-api
+        properties:
+          url: ${default-url}
+    requires:
+      - name: compensation-db
+      - name: successfactors-service
+
+  - name: compensation-app
+    type: html5
+    path: app
+    parameters:
+      buildpack: staticfile_buildpack
+    requires:
+      - name: compensation-api
+        group: destinations
+        properties:
+          name: compensation-api
+          url: ~{compensation-api/url}
+
+resources:
+  - name: compensation-db
+    type: com.sap.xs.hdi-container
+    parameters:
+      service: hana
+      service-plan: hdi-shared
+
+  - name: successfactors-service
+    type: org.cloudfoundry.existing-service
+    parameters:
+      service-name: successfactors-credentials
+
+parameters:
+  enable-parallel-deployments: true

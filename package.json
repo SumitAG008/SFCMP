@@ -1,0 +1,39 @@
+{
+  "name": "successfactors-compensation-extension",
+  "version": "1.0.0",
+  "description": "SuccessFactors Compensation Extension on SAP BTP",
+  "dependencies": {
+    "@sap/cds": "^7",
+    "@sap/cds-hana": "^1",
+    "@sap/xssec": "^4",
+    "express": "^4.18",
+    "axios": "^1.6.0",
+    "@sap-cloud-sdk/http-client": "^3.0.0",
+    "@sap/xsenv": "^3"
+  },
+  "devDependencies": {
+    "@sap/cds-dk": "^7",
+    "@cap-js/sqlite": "^1"
+  },
+  "scripts": {
+    "start": "cds run",
+    "watch": "cds watch",
+    "build": "cds build/all",
+    "deploy": "cds deploy"
+  },
+  "cds": {
+    "requires": {
+      "db": {
+        "kind": "sqlite",
+        "database": "db.sqlite"
+      },
+      "SuccessFactors": {
+        "kind": "rest",
+        "base": "https://api.successfactors.eu",
+        "credentials": {
+          "url": "~/.cds/services.json"
+        }
+      }
+    }
+  }
+}

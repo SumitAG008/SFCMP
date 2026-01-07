@@ -1,0 +1,17 @@
+{
+  "VCAP_SERVICES": {
+    "user-provided": [
+      {
+        "name": "successfactors-credentials",
+        "label": "user-provided",
+        "tags": ["successfactors"],
+        "credentials": {
+          "url": "https://api.successfactors.eu",
+          "username": "your_username",
+          "password": "your_password",
+          "companyId": "SFHUB003674"
+        }
+      }
+    ]
+  }
+}
