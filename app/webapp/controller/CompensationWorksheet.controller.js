@@ -187,16 +187,13 @@ sap.ui.define([
                     }
 
                     // RBP check passed, proceed with save
+                    if (!aData || aData.length === 0) {
+                        MessageBox.warning("No data to save");
+                        oView.setBusy(false);
+                        return;
+                    }
 
-            if (!aData || aData.length === 0) {
-                MessageBox.warning("No data to save");
-                return;
-            }
-
-            // Show busy indicator
-            oView.setBusy(true);
-
-            // Call UPDATE API
+                    // Call UPDATE API
             var sServiceUrl = "/compensation/CompensationService/updateCompensationData";
             var oPayload = {
                 companyId: sCompanyId,
