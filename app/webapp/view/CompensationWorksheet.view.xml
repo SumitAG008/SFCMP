@@ -5,7 +5,8 @@
     xmlns:table="sap.ui.table"
     xmlns:f="sap.f"
     xmlns:form="sap.ui.layout.form"
-    displayBlock="true">
+    displayBlock="true"
+    height="100%">
     <Page id="compensationPage" title="Compensation Worksheet" showNavButton="false" class="sapUiNoContentPadding">
         <headerContent>
             <Button id="refreshBtn" icon="sap-icon://refresh" press="onRefresh" tooltip="Refresh Data"/>
