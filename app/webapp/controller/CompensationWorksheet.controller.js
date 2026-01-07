@@ -505,37 +505,18 @@ sap.ui.define([
             
             // Create dialog if not exists
             if (!this._oWorkflowConfigDialog) {
-                // Ensure layout library is loaded first - SimpleForm is in sap.ui.layout.form
-                sap.ui.require([
-                    "sap/ui/layout/form/SimpleForm"
-                ], function() {
-                    Fragment.load({
-                        id: oView.getId(),
-                        name: "com.sap.sf.compensation.view.WorkflowConfigDialog",
-                        controller: this
-                    }).then(function (oDialog) {
-                        oView.addDependent(oDialog);
-                        this._oWorkflowConfigDialog = oDialog;
-                        this._oWorkflowConfigDialog.open();
-                    }.bind(this)).catch(function(error) {
-                        console.error("Error loading workflow config dialog:", error);
-                        MessageBox.error("Failed to load workflow configuration dialog. Please refresh the page.");
-                    });
-                }.bind(this), function(error) {
-                    console.error("Error loading layout library:", error);
-                    // Try loading without pre-requiring - let UI5 handle it
-                    Fragment.load({
-                        id: oView.getId(),
-                        name: "com.sap.sf.compensation.view.WorkflowConfigDialog",
-                        controller: this
-                    }).then(function (oDialog) {
-                        oView.addDependent(oDialog);
-                        this._oWorkflowConfigDialog = oDialog;
-                        this._oWorkflowConfigDialog.open();
-                    }.bind(this)).catch(function(loadError) {
-                        console.error("Error loading workflow config dialog:", loadError);
-                        MessageBox.error("Failed to load workflow configuration dialog. Please refresh the page.");
-                    });
+                // Load fragment - UI5 will automatically load required libraries
+                Fragment.load({
+                    id: oView.getId(),
+                    name: "com.sap.sf.compensation.view.WorkflowConfigDialog",
+                    controller: this
+                }).then(function (oDialog) {
+                    oView.addDependent(oDialog);
+                    this._oWorkflowConfigDialog = oDialog;
+                    this._oWorkflowConfigDialog.open();
+                }.bind(this)).catch(function(error) {
+                    console.error("Error loading workflow config dialog:", error);
+                    MessageBox.error("Failed to load workflow configuration dialog: " + (error.message || "Unknown error"));
                 });
             } else {
                 this._oWorkflowConfigDialog.open();
@@ -578,33 +559,18 @@ sap.ui.define([
             
             // Create dialog if not exists
             if (!this._oWorkflowStepEditDialog) {
-                // Ensure layout library is loaded - SimpleForm is in sap.ui.layout.form
-                sap.ui.require([
-                    "sap/ui/layout/form/SimpleForm"
-                ], function() {
-                    Fragment.load({
-                        id: oView.getId(),
-                        name: "com.sap.sf.compensation.view.WorkflowStepEditDialog",
-                        controller: this
-                    }).then(function (oDialog) {
-                        oView.addDependent(oDialog);
-                        this._oWorkflowStepEditDialog = oDialog;
-                        this._oWorkflowStepEditDialog.open();
-                    }.bind(this)).catch(function(error) {
-                        console.error("Error loading step edit dialog:", error);
-                        MessageBox.error("Failed to load step edit dialog.");
-                    });
-                }.bind(this), function(error) {
-                    // Fallback: try loading without pre-require
-                    Fragment.load({
-                        id: oView.getId(),
-                        name: "com.sap.sf.compensation.view.WorkflowStepEditDialog",
-                        controller: this
-                    }).then(function (oDialog) {
-                        oView.addDependent(oDialog);
-                        this._oWorkflowStepEditDialog = oDialog;
-                        this._oWorkflowStepEditDialog.open();
-                    }.bind(this));
+                // Load fragment - UI5 will automatically load required libraries
+                Fragment.load({
+                    id: oView.getId(),
+                    name: "com.sap.sf.compensation.view.WorkflowStepEditDialog",
+                    controller: this
+                }).then(function (oDialog) {
+                    oView.addDependent(oDialog);
+                    this._oWorkflowStepEditDialog = oDialog;
+                    this._oWorkflowStepEditDialog.open();
+                }.bind(this)).catch(function(error) {
+                    console.error("Error loading step edit dialog:", error);
+                    MessageBox.error("Failed to load step edit dialog: " + (error.message || "Unknown error"));
                 });
             } else {
                 this._oWorkflowStepEditDialog.open();
