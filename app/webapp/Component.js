@@ -2,8 +2,10 @@ sap.ui.define([
     "sap/ui/core/UIComponent",
     "sap/ui/Device",
     "sap/ui/model/json/JSONModel",
+    "sap/ui/core/mvc/View",
+    "sap/ui/core/mvc/ViewType",
     "com/sap/sf/compensation/model/models"
-], function (UIComponent, Device, JSONModel, models) {
+], function (UIComponent, Device, JSONModel, View, ViewType, models) {
     "use strict";
 
     return UIComponent.extend("com.sap.sf.compensation.Component", {
@@ -29,12 +31,11 @@ sap.ui.define([
         
         createContent: function() {
             // Explicitly create the root view
-            var oView = sap.ui.view({
+            return View.create({
                 viewName: "com.sap.sf.compensation.view.CompensationWorksheet",
-                type: sap.ui.core.mvc.ViewType.XML,
+                type: ViewType.XML,
                 id: this.createId("CompensationWorksheet")
             });
-            return oView;
         }
     });
 });
