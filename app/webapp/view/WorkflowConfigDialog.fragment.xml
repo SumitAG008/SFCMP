@@ -1,0 +1,75 @@
+<core:FragmentDefinition xmlns="sap.m" xmlns:core="sap.ui.core" xmlns:layout="sap.ui.layout">
+    <Dialog id="workflowConfigDialog" title="Configure Workflow" contentWidth="800px" contentHeight="600px" resizable="true">
+        <content>
+            <VBox class="sapUiSmallMargin">
+                <!-- Workflow Configuration -->
+                <Panel headerText="Workflow Settings" expandable="false" class="sapUiNoContentPadding">
+                    <layout:SimpleForm layout="ResponsiveGridLayout" editable="true">
+                        <layout:content>
+                            <Label text="Workflow Name"/>
+                            <Input id="workflowNameInput" value="{workflowConfig>/workflowName}" placeholder="Enter workflow name"/>
+                            <Label text="Description"/>
+                            <TextArea id="workflowDescInput" value="{workflowConfig>/description}" rows="2" placeholder="Enter workflow description"/>
+                            <Label text="Form ID"/>
+                            <Input id="workflowFormIdInput" value="{workflowConfig>/formId}" placeholder="Enter Form ID"/>
+                        </layout:content>
+                    </layout:SimpleForm>
+                </Panel>
+
+                <!-- Workflow Steps Configuration -->
+                <Panel headerText="Workflow Steps" expandable="false" class="sapUiNoContentPadding">
+                    <VBox class="sapUiSmallMargin">
+                        <HBox justifyContent="End" class="sapUiSmallMarginBottom">
+                            <Button text="Add Step" icon="sap-icon://add" press="onAddWorkflowStep" type="Transparent"/>
+                        </HBox>
+                        
+                        <List id="workflowStepsList" 
+                            items="{workflowConfig>/steps}"
+                            mode="None"
+                            class="workflow-steps-list">
+                            <CustomListItem>
+                                <VBox class="sapUiSmallMargin">
+                                    <HBox alignItems="Center" justifyContent="SpaceBetween">
+                                        <HBox alignItems="Center">
+                                            <core:Icon src="sap-icon://drag" size="1.5rem" class="sapUiTinyMarginEnd drag-handle"/>
+                                            <Title text="{workflowConfig>stepNumber}. {workflowConfig>stepName}" level="H5"/>
+                                        </HBox>
+                                        <HBox>
+                                            <Button icon="sap-icon://edit" press="onEditWorkflowStep" tooltip="Edit Step" type="Transparent" class="sapUiTinyMarginEnd"/>
+                                            <Button icon="sap-icon://delete" press="onDeleteWorkflowStep" tooltip="Delete Step" type="Reject" type="Transparent"/>
+                                        </HBox>
+                                    </HBox>
+                                    
+                                    <layout:SimpleForm layout="ResponsiveGridLayout" editable="false" class="sapUiSmallMarginTop">
+                                        <layout:content>
+                                            <Label text="Assignee Role"/>
+                                            <Text text="{workflowConfig>assigneeRole}"/>
+                                            <Label text="Status"/>
+                                            <ObjectStatus text="{workflowConfig>status}" state="{workflowConfig>statusState}"/>
+                                            <Label text="Icon"/>
+                                            <core:Icon src="{workflowConfig>icon}" size="1.5rem"/>
+                                        </layout:content>
+                                    </layout:SimpleForm>
+                                </VBox>
+                            </CustomListItem>
+                        </List>
+                    </VBox>
+                </Panel>
+
+                <!-- Preview Section -->
+                <Panel headerText="Preview" expandable="true" expanded="false" class="sapUiNoContentPadding">
+                    <VBox class="sapUiSmallMargin">
+                        <Text text="Workflow will be displayed as:" class="sapUiSmallMarginBottom"/>
+                        <Button text="Preview Workflow" icon="sap-icon://preview" press="onPreviewWorkflowFromDialog" type="Transparent"/>
+                    </VBox>
+                </Panel>
+            </VBox>
+        </content>
+        <beginButton>
+            <Button text="Save" type="Emphasized" press="onSaveWorkflowConfig"/>
+        </beginButton>
+        <endButton>
+            <Button text="Cancel" press="onCloseWorkflowConfigDialog"/>
+        </endButton>
+    </Dialog>
+</core:FragmentDefinition>

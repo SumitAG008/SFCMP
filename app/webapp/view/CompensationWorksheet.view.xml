@@ -11,9 +11,9 @@
         <headerContent>
             <Button id="refreshBtn" icon="sap-icon://refresh" press="onRefresh" tooltip="Refresh Data"/>
             <Button id="saveBtn" type="Emphasized" icon="sap-icon://save" press="onSave" tooltip="Save Changes"/>
-                <Button id="budgetsBtn" icon="sap-icon://money-bills" press="onShowBudgets" tooltip="Budgets"/>
-                <Button id="workflowBuilderBtn" icon="sap-icon://workflow-tasks" press="onShowWorkflowBuilder" tooltip="Workflow Builder"/>
-                <Button id="approvalsBtn" icon="sap-icon://approvals" press="onShowApprovals" tooltip="Approvals"/>
+            <Button id="budgetsBtn" icon="sap-icon://money-bills" press="onShowBudgets" tooltip="Budgets"/>
+            <Button id="workflowBuilderBtn" icon="sap-icon://workflow-tasks" press="onShowWorkflowBuilder" tooltip="Configure Workflow"/>
+            <Button id="approvalsBtn" icon="sap-icon://approvals" press="onShowApprovals" tooltip="View Workflow"/>
         </headerContent>
         <content>
             <VBox class="sapUiSmallMargin">

@@ -2,8 +2,9 @@ sap.ui.define([
     "sap/ui/core/mvc/Controller",
     "sap/ui/model/json/JSONModel",
     "sap/m/MessageBox",
-    "sap/m/MessageToast"
-], function (Controller, JSONModel, MessageBox, MessageToast) {
+    "sap/m/MessageToast",
+    "sap/ui/core/Fragment"
+], function (Controller, JSONModel, MessageBox, MessageToast, Fragment) {
     "use strict";
 
     return Controller.extend("com.sap.sf.compensation.controller.CompensationWorksheet", {
@@ -382,9 +383,227 @@ sap.ui.define([
         },
         
         onShowWorkflowBuilder: function () {
-            // Navigate to workflow builder using UI5 router
+            // Open workflow configuration dialog
+            this.openWorkflowConfigDialog();
+        },
+        
+        openWorkflowConfigDialog: function () {
+            var oView = this.getView();
+            var oModel = oView.getModel("compensation");
+            
+            // Create workflow config model if not exists
+            if (!this.getView().getModel("workflowConfig")) {
+                var oWorkflowConfigModel = new JSONModel({
+                    workflowName: "Compensation Approval Workflow",
+                    formId: oModel.getProperty("/formId") || "",
+                    description: "Standard compensation approval workflow",
+                    steps: [
+                        {
+                            stepNumber: 1,
+                            stepName: "Initiated",
+                            status: "Completed",
+                            statusState: "Success",
+                            assigneeRole: "Initiator",
+                            icon: "sap-icon://initiative",
+                            description: "Compensation form created and submitted"
+                        },
+                        {
+                            stepNumber: 2,
+                            stepName: "Manager Review",
+                            status: "Pending",
+                            statusState: "None",
+                            assigneeRole: "Direct Manager",
+                            icon: "sap-icon://manager",
+                            description: "Direct manager reviews and approves compensation"
+                        },
+                        {
+                            stepNumber: 3,
+                            stepName: "HR Review",
+                            status: "Pending",
+                            statusState: "None",
+                            assigneeRole: "HR Manager",
+                            icon: "sap-icon://employee",
+                            description: "HR reviews compensation for compliance"
+                        },
+                        {
+                            stepNumber: 4,
+                            stepName: "Finance Approval",
+                            status: "Pending",
+                            statusState: "None",
+                            assigneeRole: "Finance Director",
+                            icon: "sap-icon://money-bills",
+                            description: "Finance reviews budget and approves"
+                        },
+                        {
+                            stepNumber: 5,
+                            stepName: "Final Approval",
+                            status: "Pending",
+                            statusState: "None",
+                            assigneeRole: "VP of HR",
+                            icon: "sap-icon://approvals",
+                            description: "Senior management final approval"
+                        },
+                        {
+                            stepNumber: 6,
+                            stepName: "Completed",
+                            status: "Pending",
+                            statusState: "None",
+                            assigneeRole: "System",
+                            icon: "sap-icon://accept",
+                            description: "Compensation approved and processed"
+                        }
+                    ]
+                });
+                this.getView().setModel(oWorkflowConfigModel, "workflowConfig");
+            }
+            
+            // Create dialog if not exists
+            if (!this._oWorkflowConfigDialog) {
+                Fragment.load({
+                    id: oView.getId(),
+                    name: "com.sap.sf.compensation.view.WorkflowConfigDialog",
+                    controller: this
+                }).then(function (oDialog) {
+                    oView.addDependent(oDialog);
+                    this._oWorkflowConfigDialog = oDialog;
+                    this._oWorkflowConfigDialog.open();
+                }.bind(this));
+            } else {
+                this._oWorkflowConfigDialog.open();
+            }
+        },
+        
+        onCloseWorkflowConfigDialog: function () {
+            this._oWorkflowConfigDialog.close();
+        },
+        
+        onAddWorkflowStep: function () {
+            var oModel = this.getView().getModel("workflowConfig");
+            var aSteps = oModel.getProperty("/steps") || [];
+            var iNewStepNumber = aSteps.length + 1;
+            
+            var oNewStep = {
+                stepNumber: iNewStepNumber,
+                stepName: "New Step " + iNewStepNumber,
+                status: "Pending",
+                statusState: "None",
+                assigneeRole: "Assignee",
+                icon: "sap-icon://employee",
+                description: ""
+            };
+            
+            aSteps.push(oNewStep);
+            oModel.setProperty("/steps", aSteps);
+            MessageToast.show("Step added");
+        },
+        
+        onEditWorkflowStep: function (oEvent) {
+            var oView = this.getView();
+            var oStep = oEvent.getSource().getBindingContext("workflowConfig").getObject();
+            var iStepIndex = parseInt(oEvent.getSource().getBindingContext("workflowConfig").getPath().split("/").pop());
+            
+            // Create step edit model
+            var oStepEditModel = new JSONModel(JSON.parse(JSON.stringify(oStep)));
+            oView.setModel(oStepEditModel, "workflowStepEdit");
+            this._iEditingStepIndex = iStepIndex;
+            
+            // Create dialog if not exists
+            if (!this._oWorkflowStepEditDialog) {
+                Fragment.load({
+                    id: oView.getId(),
+                    name: "com.sap.sf.compensation.view.WorkflowStepEditDialog",
+                    controller: this
+                }).then(function (oDialog) {
+                    oView.addDependent(oDialog);
+                    this._oWorkflowStepEditDialog = oDialog;
+                    this._oWorkflowStepEditDialog.open();
+                }.bind(this));
+            } else {
+                this._oWorkflowStepEditDialog.open();
+            }
+        },
+        
+        onSaveWorkflowStepEdit: function () {
+            var oView = this.getView();
+            var oWorkflowConfigModel = oView.getModel("workflowConfig");
+            var oStepEditModel = oView.getModel("workflowStepEdit");
+            var aSteps = oWorkflowConfigModel.getProperty("/steps");
+            
+            var oStepData = oStepEditModel.getData();
+            oStepData.statusState = oStepData.status === "Completed" ? "Success" : (oStepData.status === "In Progress" ? "Warning" : "None");
+            
+            aSteps[this._iEditingStepIndex] = oStepData;
+            oWorkflowConfigModel.setProperty("/steps", aSteps);
+            
+            this._oWorkflowStepEditDialog.close();
+            MessageToast.show("Step updated");
+        },
+        
+        onCloseWorkflowStepEditDialog: function () {
+            this._oWorkflowStepEditDialog.close();
+        },
+        
+        onDeleteWorkflowStep: function (oEvent) {
+            var oModel = this.getView().getModel("workflowConfig");
+            var iStepIndex = parseInt(oEvent.getSource().getBindingContext("workflowConfig").getPath().split("/").pop());
+            var aSteps = oModel.getProperty("/steps");
+            
+            MessageBox.confirm("Are you sure you want to delete this step?", {
+                title: "Delete Step",
+                actions: [MessageBox.Action.YES, MessageBox.Action.NO],
+                onClose: function (sAction) {
+                    if (sAction === MessageBox.Action.YES) {
+                        aSteps.splice(iStepIndex, 1);
+                        // Renumber steps
+                        aSteps.forEach(function(oStep, iIndex) {
+                            oStep.stepNumber = iIndex + 1;
+                        });
+                        oModel.setProperty("/steps", aSteps);
+                        MessageToast.show("Step deleted");
+                    }
+                }.bind(this)
+            });
+        },
+        
+        onSaveWorkflowConfig: function () {
+            var oView = this.getView();
+            var oWorkflowConfigModel = oView.getModel("workflowConfig");
+            var oWorkflowData = oWorkflowConfigModel.getData();
+            var oCompModel = oView.getModel("compensation");
+            
+            // Show busy indicator
+            oView.setBusy(true);
+            
+            // Save workflow to backend
+            var sServiceUrl = "/compensation/CompensationService/saveWorkflow";
+            var oPayload = {
+                companyId: oCompModel.getProperty("/companyId"),
+                formId: oWorkflowData.formId || oCompModel.getProperty("/formId"),
+                workflow: oWorkflowData
+            };
+            
+            $.ajax({
+                url: sServiceUrl,
+                method: "POST",
+                contentType: "application/json",
+                data: JSON.stringify(oPayload),
+                success: function (response) {
+                    MessageToast.show("Workflow saved successfully");
+                    oView.setBusy(false);
+                    this._oWorkflowConfigDialog.close();
+                }.bind(this),
+                error: function (error) {
+                    console.error("Error saving workflow:", error);
+                    MessageBox.error("Failed to save workflow: " + (error.responseJSON?.error?.message || error.statusText));
+                    oView.setBusy(false);
+                }
+            });
+        },
+        
+        onPreviewWorkflowFromDialog: function () {
+            // Navigate to workflow visualization
             var oRouter = this.getOwnerComponent().getRouter();
-            oRouter.navTo("workflowBuilder");
+            oRouter.navTo("workflow");
         },
         
         onShowApprovals: function () {
