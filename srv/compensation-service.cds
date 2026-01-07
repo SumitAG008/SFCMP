@@ -1,4 +1,5 @@
 using { com.sap.sf.compensation as comp } from '../db/schema';
+using { WorkflowStatus, WorkflowStep, WorkflowEmployee, RBPStatus, EmployeeData } from '../db/schema';
 
 service CompensationService {
   entity CompensationWorksheet as projection on comp.Compensation;
