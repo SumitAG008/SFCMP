@@ -606,24 +606,339 @@ sap.ui.define([
         
         onDeleteWorkflowStep: function (oEvent) {
             var oModel = this.getView().getModel("workflowConfig");
-            var iStepIndex = parseInt(oEvent.getSource().getBindingContext("workflowConfig").getPath().split("/").pop());
-            var aSteps = oModel.getProperty("/steps");
+            var oStepContext = oEvent.getSource().getBindingContext("workflowConfig");
+            if (!oStepContext) {
+                MessageBox.warning("Unable to delete step. Please try again.");
+                return;
+            }
+            var iStepIndex = parseInt(oStepContext.getPath().split("/").pop());
+            var aSteps = oModel.getProperty("/steps") || [];
             
             MessageBox.confirm("Are you sure you want to delete this step?", {
                 title: "Delete Step",
                 actions: [MessageBox.Action.YES, MessageBox.Action.NO],
                 onClose: function (sAction) {
                     if (sAction === MessageBox.Action.YES) {
-                        aSteps.splice(iStepIndex, 1);
-                        // Renumber steps
-                        aSteps.forEach(function(oStep, iIndex) {
-                            oStep.stepNumber = iIndex + 1;
-                        });
-                        oModel.setProperty("/steps", aSteps);
-                        MessageToast.show("Step deleted");
+                        if (iStepIndex >= 0 && iStepIndex < aSteps.length) {
+                            aSteps.splice(iStepIndex, 1);
+                            // Renumber steps
+                            aSteps.forEach(function(oStep, iIndex) {
+                                oStep.stepNumber = iIndex + 1;
+                            });
+                            oModel.setProperty("/steps", aSteps);
+                            MessageToast.show("Step deleted");
+                        }
                     }
                 }.bind(this)
             });
+        },
+        
+        onDeleteSelectedSteps: function (oEvent) {
+            var oView = this.getView();
+            var oTable = oView.byId("workflowStepsTable");
+            if (!oTable) {
+                MessageBox.warning("Table not found");
+                return;
+            }
+            
+            var aSelectedIndices = oTable.getSelectedIndices();
+            if (aSelectedIndices.length === 0) {
+                MessageBox.warning("Please select at least one step to delete");
+                return;
+            }
+            
+            MessageBox.confirm("Are you sure you want to delete " + aSelectedIndices.length + " selected step(s)?", {
+                title: "Delete Steps",
+                actions: [MessageBox.Action.YES, MessageBox.Action.NO],
+                onClose: function (sAction) {
+                    if (sAction === MessageBox.Action.YES) {
+                        var oModel = oView.getModel("workflowConfig");
+                        var aSteps = oModel.getProperty("/steps") || [];
+                        
+                        // Sort indices in descending order to delete from end to start
+                        aSelectedIndices.sort(function(a, b) { return b - a; });
+                        
+                        // Delete selected steps
+                        aSelectedIndices.forEach(function(iIndex) {
+                            if (iIndex >= 0 && iIndex < aSteps.length) {
+                                aSteps.splice(iIndex, 1);
+                            }
+                        });
+                        
+                        // Renumber remaining steps
+                        aSteps.forEach(function(oStep, iIndex) {
+                            oStep.stepNumber = iIndex + 1;
+                        });
+                        
+                        oModel.setProperty("/steps", aSteps);
+                        oTable.removeSelections();
+                        MessageToast.show(aSelectedIndices.length + " step(s) deleted");
+                    }
+                }.bind(this)
+            });
+        },
+        
+        onSortSteps: function (oEvent) {
+            var oView = this.getView();
+            var oTable = oView.byId("workflowStepsTable");
+            if (!oTable) {
+                return;
+            }
+            
+            var oModel = oView.getModel("workflowConfig");
+            var aSteps = oModel.getProperty("/steps") || [];
+            
+            // Toggle sort order (by step number)
+            var bAscending = !this._bStepsSortAscending;
+            this._bStepsSortAscending = bAscending;
+            
+            aSteps.sort(function(a, b) {
+                if (bAscending) {
+                    return a.stepNumber - b.stepNumber;
+                } else {
+                    return b.stepNumber - a.stepNumber;
+                }
+            });
+            
+            // Renumber after sort
+            aSteps.forEach(function(oStep, iIndex) {
+                oStep.stepNumber = iIndex + 1;
+            });
+            
+            oModel.setProperty("/steps", aSteps);
+            MessageToast.show("Steps sorted " + (bAscending ? "ascending" : "descending"));
+        },
+        
+        onMoveStepsUp: function (oEvent) {
+            var oView = this.getView();
+            var oTable = oView.byId("workflowStepsTable");
+            if (!oTable) {
+                return;
+            }
+            
+            var aSelectedIndices = oTable.getSelectedIndices();
+            if (aSelectedIndices.length === 0) {
+                MessageBox.warning("Please select at least one step to move");
+                return;
+            }
+            
+            var oModel = oView.getModel("workflowConfig");
+            var aSteps = oModel.getProperty("/steps") || [];
+            
+            // Sort indices in ascending order to move from start to end
+            aSelectedIndices.sort(function(a, b) { return a - b; });
+            
+            // Check if first selected item is already at position 0
+            if (aSelectedIndices[0] === 0) {
+                MessageToast.show("Cannot move up. Step is already at the top");
+                return;
+            }
+            
+            // Move each selected step up by one position
+            aSelectedIndices.forEach(function(iIndex) {
+                if (iIndex > 0 && iIndex < aSteps.length) {
+                    // Swap with previous step
+                    var oTemp = aSteps[iIndex];
+                    aSteps[iIndex] = aSteps[iIndex - 1];
+                    aSteps[iIndex - 1] = oTemp;
+                }
+            });
+            
+            // Renumber steps
+            aSteps.forEach(function(oStep, iIndex) {
+                oStep.stepNumber = iIndex + 1;
+            });
+            
+            oModel.setProperty("/steps", aSteps);
+            MessageToast.show("Step(s) moved up");
+        },
+        
+        onMoveStepsDown: function (oEvent) {
+            var oView = this.getView();
+            var oTable = oView.byId("workflowStepsTable");
+            if (!oTable) {
+                return;
+            }
+            
+            var aSelectedIndices = oTable.getSelectedIndices();
+            if (aSelectedIndices.length === 0) {
+                MessageBox.warning("Please select at least one step to move");
+                return;
+            }
+            
+            var oModel = oView.getModel("workflowConfig");
+            var aSteps = oModel.getProperty("/steps") || [];
+            
+            // Sort indices in descending order to move from end to start
+            aSelectedIndices.sort(function(a, b) { return b - a; });
+            
+            // Check if last selected item is already at the last position
+            if (aSelectedIndices[0] === aSteps.length - 1) {
+                MessageToast.show("Cannot move down. Step is already at the bottom");
+                return;
+            }
+            
+            // Move each selected step down by one position
+            aSelectedIndices.forEach(function(iIndex) {
+                if (iIndex >= 0 && iIndex < aSteps.length - 1) {
+                    // Swap with next step
+                    var oTemp = aSteps[iIndex];
+                    aSteps[iIndex] = aSteps[iIndex + 1];
+                    aSteps[iIndex + 1] = oTemp;
+                }
+            });
+            
+            // Renumber steps
+            aSteps.forEach(function(oStep, iIndex) {
+                oStep.stepNumber = iIndex + 1;
+            });
+            
+            oModel.setProperty("/steps", aSteps);
+            MessageToast.show("Step(s) moved down");
+        },
+        
+        onImportWorkflowTemplate: function (oEvent) {
+            var oView = this.getView();
+            var oFileUploader = new sap.ui.unified.FileUploader({
+                fileType: "json",
+                change: function(oEvent) {
+                    var oFile = oEvent.getParameter("files")[0];
+                    if (!oFile) {
+                        return;
+                    }
+                    
+                    var oReader = new FileReader();
+                    oReader.onload = function(oEvent) {
+                        try {
+                            var sContent = oEvent.target.result;
+                            var oTemplate = JSON.parse(sContent);
+                            
+                            if (oTemplate.steps && Array.isArray(oTemplate.steps)) {
+                                var oModel = oView.getModel("workflowConfig");
+                                
+                                // Merge template with current workflow
+                                if (oTemplate.workflowName) {
+                                    oModel.setProperty("/workflowName", oTemplate.workflowName);
+                                }
+                                if (oTemplate.description) {
+                                    oModel.setProperty("/description", oTemplate.description);
+                                }
+                                
+                                // Replace or merge steps
+                                var aCurrentSteps = oModel.getProperty("/steps") || [];
+                                var aTemplateSteps = oTemplate.steps;
+                                
+                                // Renumber template steps
+                                aTemplateSteps.forEach(function(oStep, iIndex) {
+                                    oStep.stepNumber = aCurrentSteps.length + iIndex + 1;
+                                });
+                                
+                                var aNewSteps = aCurrentSteps.concat(aTemplateSteps);
+                                oModel.setProperty("/steps", aNewSteps);
+                                
+                                MessageToast.show("Template imported successfully. " + aTemplateSteps.length + " step(s) added.");
+                            } else {
+                                MessageBox.error("Invalid template format. Expected 'steps' array.");
+                            }
+                        } catch (e) {
+                            MessageBox.error("Failed to parse template file: " + e.message);
+                        }
+                    };
+                    oReader.readAsText(oFile);
+                }
+            });
+            
+            // Create a temporary input element to trigger file selection
+            var oInput = document.createElement("input");
+            oInput.type = "file";
+            oInput.accept = ".json";
+            oInput.onchange = function(oEvent) {
+                var oFile = oEvent.target.files[0];
+                if (oFile) {
+                    var oReader = new FileReader();
+                    oReader.onload = function(e) {
+                        try {
+                            var sContent = e.target.result;
+                            var oTemplate = JSON.parse(sContent);
+                            
+                            if (oTemplate.steps && Array.isArray(oTemplate.steps)) {
+                                var oModel = oView.getModel("workflowConfig");
+                                
+                                // Merge template with current workflow
+                                if (oTemplate.workflowName) {
+                                    oModel.setProperty("/workflowName", oTemplate.workflowName);
+                                }
+                                if (oTemplate.description) {
+                                    oModel.setProperty("/description", oTemplate.description);
+                                }
+                                
+                                // Replace or merge steps
+                                var aCurrentSteps = oModel.getProperty("/steps") || [];
+                                var aTemplateSteps = oTemplate.steps;
+                                
+                                // Renumber template steps
+                                aTemplateSteps.forEach(function(oStep, iIndex) {
+                                    oStep.stepNumber = aCurrentSteps.length + iIndex + 1;
+                                });
+                                
+                                var aNewSteps = aCurrentSteps.concat(aTemplateSteps);
+                                oModel.setProperty("/steps", aNewSteps);
+                                
+                                MessageToast.show("Template imported successfully. " + aTemplateSteps.length + " step(s) added.");
+                            } else {
+                                MessageBox.error("Invalid template format. Expected 'steps' array.");
+                            }
+                        } catch (e) {
+                            MessageBox.error("Failed to parse template file: " + e.message);
+                        }
+                    };
+                    oReader.readAsText(oFile);
+                }
+            };
+            oInput.click();
+        },
+        
+        onExportWorkflowTemplate: function (oEvent) {
+            var oView = this.getView();
+            var oModel = oView.getModel("workflowConfig");
+            var oWorkflowData = oModel.getData();
+            
+            if (!oWorkflowData.steps || oWorkflowData.steps.length === 0) {
+                MessageBox.warning("No workflow steps to export");
+                return;
+            }
+            
+            // Create export template
+            var oTemplate = {
+                workflowName: oWorkflowData.workflowName || "Workflow Template",
+                description: oWorkflowData.description || "",
+                workflowType: oWorkflowData.workflowType || "COMPENSATION",
+                steps: oWorkflowData.steps.map(function(oStep) {
+                    return {
+                        stepName: oStep.stepName,
+                        assigneeRole: oStep.assigneeRole,
+                        icon: oStep.icon,
+                        status: oStep.status,
+                        dueDays: oStep.dueDays,
+                        required: oStep.required,
+                        description: oStep.description || ""
+                    };
+                })
+            };
+            
+            // Create download
+            var sJson = JSON.stringify(oTemplate, null, 2);
+            var sBlob = new Blob([sJson], { type: "application/json" });
+            var sUrl = URL.createObjectURL(sBlob);
+            var oLink = document.createElement("a");
+            oLink.href = sUrl;
+            oLink.download = (oWorkflowData.workflowName || "workflow") + "_template.json";
+            document.body.appendChild(oLink);
+            oLink.click();
+            document.body.removeChild(oLink);
+            URL.revokeObjectURL(sUrl);
+            
+            MessageToast.show("Template exported successfully");
         },
         
         onSaveWorkflowConfig: function () {
@@ -651,29 +966,156 @@ sap.ui.define([
             oView.setBusy(true);
             
             // Save workflow to backend
-                var sServiceUrl = "/compensation/CompensationService/saveWorkflow";
+            var sServiceUrl = "/compensation/CompensationService/saveWorkflow";
             var oPayload = {
-                companyId: oCompModel.getProperty("/companyId"),
-                formId: oWorkflowData.formId || oCompModel.getProperty("/formId"),
+                companyId: oCompModel.getProperty("/companyId") || oWorkflowData.companyId || "SFHUB003674",
+                formId: oWorkflowData.formId || oCompModel.getProperty("/formId") || "",
                 workflow: oWorkflowData
             };
             
-            $.ajax({
-                url: sServiceUrl,
-                method: "POST",
-                contentType: "application/json",
-                data: JSON.stringify(oPayload),
-                success: function (response) {
+            // Use OData v4 action call
+            var oModel = oView.getModel("compensation");
+            if (oModel && oModel.bindContext) {
+                // Use OData model if available
+                oModel.bindContext("/CompensationService/saveWorkflow(...)").execute({
+                    companyId: oPayload.companyId,
+                    formId: oPayload.formId,
+                    workflow: oPayload.workflow
+                }).then(function(oResult) {
+                    var oResponse = oResult.getObject();
                     MessageToast.show("Workflow saved and activated successfully");
                     oView.setBusy(false);
-                    this._oWorkflowConfigDialog.close();
-                }.bind(this),
-                error: function (error) {
-                    console.error("Error saving workflow:", error);
-                    MessageBox.error("Failed to save workflow: " + (error.responseJSON?.error?.message || error.statusText));
+                    if (this._oWorkflowConfigDialog) {
+                        this._oWorkflowConfigDialog.close();
+                    }
+                }.bind(this)).catch(function(oError) {
+                    console.error("Error saving workflow:", oError);
+                    var sErrorMessage = "Failed to save workflow";
+                    if (oError.message) {
+                        sErrorMessage += ": " + oError.message;
+                    } else if (oError.responseText) {
+                        try {
+                            var oErrorJson = JSON.parse(oError.responseText);
+                            sErrorMessage += ": " + (oErrorJson.error?.message || oErrorJson.error || oError.responseText);
+                        } catch (e) {
+                            sErrorMessage += ": " + oError.responseText;
+                        }
+                    }
+                    MessageBox.error(sErrorMessage);
                     oView.setBusy(false);
-                }
-            });
+                }.bind(this));
+            } else {
+                // Fallback to AJAX
+                $.ajax({
+                    url: sServiceUrl,
+                    method: "POST",
+                    contentType: "application/json",
+                    data: JSON.stringify(oPayload),
+                    success: function (response) {
+                        MessageToast.show("Workflow saved and activated successfully");
+                        oView.setBusy(false);
+                        if (this._oWorkflowConfigDialog) {
+                            this._oWorkflowConfigDialog.close();
+                        }
+                    }.bind(this),
+                    error: function (error) {
+                        console.error("Error saving workflow:", error);
+                        var sErrorMessage = "Failed to save workflow";
+                        if (error.responseJSON && error.responseJSON.error) {
+                            sErrorMessage += ": " + (error.responseJSON.error.message || error.responseJSON.error.code || JSON.stringify(error.responseJSON.error));
+                        } else if (error.responseText) {
+                            try {
+                                var oErrorJson = JSON.parse(error.responseText);
+                                sErrorMessage += ": " + (oErrorJson.error?.message || oErrorJson.error || error.responseText);
+                            } catch (e) {
+                                sErrorMessage += ": " + error.responseText;
+                            }
+                        } else if (error.statusText) {
+                            sErrorMessage += ": " + error.statusText;
+                        }
+                        MessageBox.error(sErrorMessage);
+                        oView.setBusy(false);
+                    }.bind(this)
+                });
+            }
+        },
+        
+        onSaveWorkflowDraft: function () {
+            var oView = this.getView();
+            var oWorkflowConfigModel = oView.getModel("workflowConfig");
+            var oWorkflowData = oWorkflowConfigModel.getData();
+            var oCompModel = oView.getModel("compensation");
+            
+            // Validation
+            if (!oWorkflowData.workflowName) {
+                MessageBox.warning("Please enter workflow name");
+                return;
+            }
+            
+            if (!oWorkflowData.steps || oWorkflowData.steps.length === 0) {
+                MessageBox.warning("Please add at least one workflow step");
+                return;
+            }
+            
+            // Set status to DRAFT
+            oWorkflowData.status = "DRAFT";
+            oWorkflowConfigModel.setProperty("/status", "DRAFT");
+            
+            // Show busy indicator
+            oView.setBusy(true);
+            
+            // Save workflow to backend as draft
+            var sServiceUrl = "/compensation/CompensationService/saveWorkflow";
+            var oPayload = {
+                companyId: oCompModel.getProperty("/companyId") || oWorkflowData.companyId || "SFHUB003674",
+                formId: oWorkflowData.formId || oCompModel.getProperty("/formId") || "",
+                workflow: oWorkflowData
+            };
+            
+            // Use OData v4 action call
+            var oModel = oView.getModel("compensation");
+            if (oModel && oModel.bindContext) {
+                oModel.bindContext("/CompensationService/saveWorkflow(...)").execute({
+                    companyId: oPayload.companyId,
+                    formId: oPayload.formId,
+                    workflow: oPayload.workflow
+                }).then(function(oResult) {
+                    var oResponse = oResult.getObject();
+                    MessageToast.show("Workflow saved as draft successfully");
+                    oView.setBusy(false);
+                }.bind(this)).catch(function(oError) {
+                    console.error("Error saving workflow draft:", oError);
+                    var sErrorMessage = "Failed to save workflow draft";
+                    if (oError.message) {
+                        sErrorMessage += ": " + oError.message;
+                    }
+                    MessageBox.error(sErrorMessage);
+                    oView.setBusy(false);
+                }.bind(this));
+            } else {
+                // Fallback to AJAX
+                $.ajax({
+                    url: sServiceUrl,
+                    method: "POST",
+                    contentType: "application/json",
+                    data: JSON.stringify(oPayload),
+                    success: function (response) {
+                        MessageToast.show("Workflow saved as draft successfully");
+                        oView.setBusy(false);
+                    }.bind(this),
+                    error: function (error) {
+                        console.error("Error saving workflow draft:", error);
+                        var sErrorMessage = "Failed to save workflow draft";
+                        if (error.responseJSON && error.responseJSON.error) {
+                            sErrorMessage += ": " + (error.responseJSON.error.message || error.responseJSON.error.code || JSON.stringify(error.responseJSON.error));
+                        } else if (error.statusText) {
+                            sErrorMessage += ": " + error.statusText;
+                        }
+                        MessageBox.error(sErrorMessage);
+                        oView.setBusy(false);
+                    }.bind(this)
+                });
+            }
         },
         
         onPreviewWorkflowFromDialog: function () {

@@ -27,7 +27,7 @@ modules:
         group: destinations
         properties:
           name: compensation-api
-          url: ~{compensation-api/url}
+          url: '~{compensation-api/url}'
 
 resources:
   - name: compensation-db

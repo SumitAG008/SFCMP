@@ -6,7 +6,7 @@
         "label": "user-provided",
         "tags": ["successfactors"],
         "credentials": {
-          "url": "https://api.successfactors.eu",
+          "url": "https://apisalesdemo2.successfactors.eu",
           "username": "your_username",
           "password": "your_password",
           "companyId": "SFHUB003674"

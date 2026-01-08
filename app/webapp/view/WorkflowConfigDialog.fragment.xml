@@ -60,6 +60,8 @@
                                                 <Title text="Workflow Steps"/>
                                                 <ToolbarSpacer/>
                                                 <Button icon="sap-icon://sort" press="onSortSteps" tooltip="Sort Steps"/>
+                                                <Button icon="sap-icon://arrow-up" press="onMoveStepsUp" tooltip="Move Up"/>
+                                                <Button icon="sap-icon://arrow-down" press="onMoveStepsDown" tooltip="Move Down"/>
                                                 <Button icon="sap-icon://delete" press="onDeleteSelectedSteps" tooltip="Delete Selected"/>
                                             </OverflowToolbar>
                                         </table:extension>
@@ -217,8 +219,14 @@
             <Button text="Save &amp; Activate" type="Emphasized" press="onSaveWorkflowConfig"/>
         </beginButton>
         <endButton>
-            <Button text="Save as Draft" press="onSaveWorkflowDraft"/>
             <Button text="Cancel" press="onCloseWorkflowConfigDialog"/>
         </endButton>
+        <subHeader>
+            <Toolbar>
+                <content>
+                    <Button text="Save as Draft" press="onSaveWorkflowDraft" type="Transparent" icon="sap-icon://save"/>
+                </content>
+            </Toolbar>
+        </subHeader>
     </Dialog>
 </core:FragmentDefinition>
