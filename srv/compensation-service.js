@@ -98,57 +98,123 @@ module.exports = cds.service.impl(async function() {
       }
       
       console.log(`User ${userId} has RBP permission: ${rbpCheck.permissionType}, Role: ${rbpCheck.role}`);
-      // Call SuccessFactors Employee Compensation API v1
-      // API Reference: https://api.sap.com/api/sap-sf-employeeCompensation-v1/resource/Employee_Compensation
-      let endpoint = `/odata/v2/Employee_Compensation`;
       
-      // Build filter query
+      // Call SuccessFactors Employee Compensations API
+      // API Reference: https://api.sap.com/api/sap-sf-employeeCompensation-v1/resource/Employee_Compensation
+      // This API accesses data from salary, bonus, and stock tabs, plus performance rating and force comments
+      let endpoint = `/odata/v2/employeeCompensations`;
+      
+      // Build filter query - use templateId (formId) to get compensation worksheet data
       const filters = [];
       if (companyId) filters.push(`companyId eq '${companyId}'`);
-      if (userId) filters.push(`userId eq '${userId}'`);
-      if (formId) filters.push(`formId eq '${formId}'`);
+      if (formId) {
+        // Use templateId to filter by compensation template/form
+        filters.push(`templateId eq '${formId}'`);
+      }
+      
+      // Select all relevant fields from salary, bonus, stock tabs
+      const selectFields = [
+        'employeeId',
+        'employeeName',
+        'currentSalary',
+        'currency',
+        'meritIncrease',
+        'meritIncreaseAmount',
+        'adjustmentIncrease',
+        'adjustmentIncreaseAmount',
+        'lumpSum',
+        'finalSalary',
+        'totalPayIncludingLumpSum',
+        'effectiveDate',
+        'performanceRating',
+        'performanceRatingText',
+        'forceComments',
+        'managerComments',
+        'jobTitle',
+        'department',
+        'location',
+        'hireDate',
+        'payGrade',
+        'salaryRangeMin',
+        'salaryRangeMax',
+        'compaRatio',
+        'rangePenetration',
+        'bonusTarget',
+        'bonusActual',
+        'stockGrant',
+        'stockVested',
+        'equityValue'
+      ];
       
       if (filters.length > 0) {
         endpoint += `?$filter=${filters.join(' and ')}`;
+        endpoint += `&$select=${selectFields.join(',')}`;
+      } else {
+        endpoint += `?$select=${selectFields.join(',')}`;
       }
       
       const sfData = await callSFAPI(endpoint);
       
-      // Transform SuccessFactors Employee Compensation API v1 data to our format
-      // Mapping based on: https://api.sap.com/api/sap-sf-employeeCompensation-v1/resource/Employee_Compensation
+      // Transform SuccessFactors Employee Compensations API data to our worksheet format
+      // This API provides data from salary, bonus, stock tabs, plus performance rating and force comments
       const compensationData = sfData.d?.results?.map(item => ({
+        // Employee Information (Read-only from SF - Red highlighted)
         id: item.id || cds.utils.uuid(),
         companyId: item.companyId || companyId,
         userId: item.userId || userId,
         formId: item.formId || formId,
         employeeId: item.employeeId || item.empId,
         employeeName: item.employeeName || item.empName || `${item.firstName || ''} ${item.lastName || ''}`.trim(),
-        position: item.jobTitle || item.position,
-        department: item.department || item.departmentName,
-        currentSalary: item.currentSalary || item.baseSalary || item.salary,
-        proposedSalary: item.proposedSalary || item.newSalary,
-        meritIncrease: item.meritIncrease || item.meritPercent || item.meritIncreasePercent,
-        meritIncreaseAmount: item.meritIncreaseAmount || item.meritDollar,
-        promotionIncrease: item.promotionIncrease || item.promotionPercent || 0,
-        promotionIncreaseAmount: item.promotionIncreaseAmount || item.promotionDollar || 0,
-        adjustmentIncrease: item.adjustmentIncrease || item.adjustmentPercent || 0,
-        adjustmentIncreaseAmount: item.adjustmentIncreaseAmount || item.adjustmentDollar || 0,
-        lumpSum: item.lumpSum || item.lumpSumAmount || 0,
-        totalIncrease: item.totalIncrease || item.totalIncreasePercent,
-        totalIncreaseAmount: item.totalIncreaseAmount || item.totalRaise,
-        newSalary: item.newSalary || item.finalSalary || item.proposedSalary,
-        finalSalaryRate: item.finalSalaryRate || item.newSalaryRate,
-        totalPay: item.totalPay || item.totalPayIncludingLumpSum,
+        jobTitle: item.jobTitle || item.position || '',
+        department: item.department || item.departmentName || '',
+        location: item.location || '',
+        hireDate: item.hireDate || '',
+        
+        // Current Pay Information (Read-only from SF - Red highlighted)
+        currentSalary: item.currentSalary || item.baseSalary || item.salary || 0,
         currency: item.currency || item.currencyCode || 'USD',
-        effectiveDate: item.effectiveDate || item.effectiveDate,
-        status: item.status || item.compensationStatus || 'Draft',
-        comments: item.comments || item.notes,
-        performanceRating: item.performanceRating || item.overallPerformanceRating,
-        payGrade: item.payGrade,
-        salaryRangeMin: item.salaryRangeMin,
-        salaryRangeMax: item.salaryRangeMax,
-        compaRatio: item.compaRatio,
-        rangePenetration: item.rangePenetration,
+        payGrade: item.payGrade || '',
+        salaryRangeMin: item.salaryRangeMin || 0,
+        salaryRangeMax: item.salaryRangeMax || 0,
+        compaRatio: item.compaRatio || 0,
+        rangePenetration: item.rangePenetration || 0,
+        
+        // Performance Rating (Read-only from SF - Red highlighted)
+        overallPerformance: item.performanceRating || item.overallPerformanceRating || 0,
+        overallPerformanceText: item.performanceRatingText || item.performanceRating || '',
+        
+        // Editable Fields (Green highlighted - User can edit with RBP control)
+        merit: item.meritIncrease || item.meritPercent || item.meritIncreasePercent || 0,
+        meritAmount: item.meritIncreaseAmount || item.meritDollar || 0,
+        adjustment: item.adjustmentIncrease || item.adjustmentPercent || 0,
+        adjustmentAmount: item.adjustmentIncreaseAmount || item.adjustmentDollar || 0,
+        lumpSum: item.lumpSum || item.lumpSumAmount || 0,
+        
+        // Calculated Fields (Formula-driven - will be recalculated based on formulas)
+        totalRaise: item.meritIncreaseAmount || item.totalRaise || 0,
+        totalIncrease: item.totalIncreaseAmount || item.totalIncrease || 0,
+        finalSalaryRate: item.finalSalaryRate || item.newSalaryRate || item.currentSalary || 0,
+        finalSalary: item.finalSalary || item.totalPayIncludingLumpSum || item.newSalary || item.currentSalary || 0,
+        
+        // Performance & Comments
+        performanceRating: item.performanceRating || item.overallPerformanceRating || 0,
+        performanceRatingText: item.performanceRatingText || '',
+        forceComments: item.forceComments || '',
+        managerComments: item.managerComments || item.comments || item.notes || '',
+        
+        // Bonus Tab Data
+        bonusTarget: item.bonusTarget || 0,
+        bonusActual: item.bonusActual || 0,
+        bonusPercentage: item.bonusPercentage || 0,
+        
+        // Stock Tab Data
+        stockGrant: item.stockGrant || 0,
+        stockVested: item.stockVested || 0,
+        equityValue: item.equityValue || 0,
+        
+        // Metadata
+        effectiveDate: item.effectiveDate || new Date().toISOString().split('T')[0],
+        status: item.status || item.compensationStatus || 'DRAFT',
         lastModified: item.lastModified || item.lastModifiedDate || new Date().toISOString(),
         lastModifiedBy: item.lastModifiedBy || userId
       })) || [];
