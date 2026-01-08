@@ -973,39 +973,8 @@ sap.ui.define([
                 workflow: oWorkflowData
             };
             
-            // Use OData v4 action call
-            var oModel = oView.getModel("compensation");
-            if (oModel && oModel.bindContext) {
-                // Use OData model if available
-                oModel.bindContext("/CompensationService/saveWorkflow(...)").execute({
-                    companyId: oPayload.companyId,
-                    formId: oPayload.formId,
-                    workflow: oPayload.workflow
-                }).then(function(oResult) {
-                    var oResponse = oResult.getObject();
-                    MessageToast.show("Workflow saved and activated successfully");
-                    oView.setBusy(false);
-                    if (this._oWorkflowConfigDialog) {
-                        this._oWorkflowConfigDialog.close();
-                    }
-                }.bind(this)).catch(function(oError) {
-                    console.error("Error saving workflow:", oError);
-                    var sErrorMessage = "Failed to save workflow";
-                    if (oError.message) {
-                        sErrorMessage += ": " + oError.message;
-                    } else if (oError.responseText) {
-                        try {
-                            var oErrorJson = JSON.parse(oError.responseText);
-                            sErrorMessage += ": " + (oErrorJson.error?.message || oErrorJson.error || oError.responseText);
-                        } catch (e) {
-                            sErrorMessage += ": " + oError.responseText;
-                        }
-                    }
-                    MessageBox.error(sErrorMessage);
-                    oView.setBusy(false);
-                }.bind(this));
-            } else {
-                // Fallback to AJAX
+            // Use AJAX for OData v4 action call (bindContext.execute doesn't work for actions)
+            // Fallback to AJAX
                 $.ajax({
                     url: sServiceUrl,
                     method: "POST",
