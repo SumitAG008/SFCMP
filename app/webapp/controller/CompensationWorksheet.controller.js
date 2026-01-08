@@ -974,39 +974,37 @@ sap.ui.define([
             };
             
             // Use AJAX for OData v4 action call (bindContext.execute doesn't work for actions)
-            // Fallback to AJAX
-                $.ajax({
-                    url: sServiceUrl,
-                    method: "POST",
-                    contentType: "application/json",
-                    data: JSON.stringify(oPayload),
-                    success: function (response) {
-                        MessageToast.show("Workflow saved and activated successfully");
-                        oView.setBusy(false);
-                        if (this._oWorkflowConfigDialog) {
-                            this._oWorkflowConfigDialog.close();
+            $.ajax({
+                url: sServiceUrl,
+                method: "POST",
+                contentType: "application/json",
+                data: JSON.stringify(oPayload),
+                success: function (response) {
+                    MessageToast.show("Workflow saved and activated successfully");
+                    oView.setBusy(false);
+                    if (this._oWorkflowConfigDialog) {
+                        this._oWorkflowConfigDialog.close();
+                    }
+                }.bind(this),
+                error: function (error) {
+                    console.error("Error saving workflow:", error);
+                    var sErrorMessage = "Failed to save workflow";
+                    if (error.responseJSON && error.responseJSON.error) {
+                        sErrorMessage += ": " + (error.responseJSON.error.message || error.responseJSON.error.code || JSON.stringify(error.responseJSON.error));
+                    } else if (error.responseText) {
+                        try {
+                            var oErrorJson = JSON.parse(error.responseText);
+                            sErrorMessage += ": " + (oErrorJson.error?.message || oErrorJson.error || error.responseText);
+                        } catch (e) {
+                            sErrorMessage += ": " + error.responseText;
                         }
-                    }.bind(this),
-                    error: function (error) {
-                        console.error("Error saving workflow:", error);
-                        var sErrorMessage = "Failed to save workflow";
-                        if (error.responseJSON && error.responseJSON.error) {
-                            sErrorMessage += ": " + (error.responseJSON.error.message || error.responseJSON.error.code || JSON.stringify(error.responseJSON.error));
-                        } else if (error.responseText) {
-                            try {
-                                var oErrorJson = JSON.parse(error.responseText);
-                                sErrorMessage += ": " + (oErrorJson.error?.message || oErrorJson.error || error.responseText);
-                            } catch (e) {
-                                sErrorMessage += ": " + error.responseText;
-                            }
-                        } else if (error.statusText) {
-                            sErrorMessage += ": " + error.statusText;
-                        }
-                        MessageBox.error(sErrorMessage);
-                        oView.setBusy(false);
-                    }.bind(this)
-                });
-            }
+                    } else if (error.statusText) {
+                        sErrorMessage += ": " + error.statusText;
+                    }
+                    MessageBox.error(sErrorMessage);
+                    oView.setBusy(false);
+                }.bind(this)
+            });
         },
         
         onSaveWorkflowDraft: function () {
@@ -1041,50 +1039,28 @@ sap.ui.define([
                 workflow: oWorkflowData
             };
             
-            // Use OData v4 action call
-            var oModel = oView.getModel("compensation");
-            if (oModel && oModel.bindContext) {
-                oModel.bindContext("/CompensationService/saveWorkflow(...)").execute({
-                    companyId: oPayload.companyId,
-                    formId: oPayload.formId,
-                    workflow: oPayload.workflow
-                }).then(function(oResult) {
-                    var oResponse = oResult.getObject();
+            // Use AJAX for OData v4 action call (bindContext.execute doesn't work for actions)
+            $.ajax({
+                url: sServiceUrl,
+                method: "POST",
+                contentType: "application/json",
+                data: JSON.stringify(oPayload),
+                success: function (response) {
                     MessageToast.show("Workflow saved as draft successfully");
                     oView.setBusy(false);
-                }.bind(this)).catch(function(oError) {
-                    console.error("Error saving workflow draft:", oError);
+                }.bind(this),
+                error: function (error) {
+                    console.error("Error saving workflow draft:", error);
                     var sErrorMessage = "Failed to save workflow draft";
-                    if (oError.message) {
-                        sErrorMessage += ": " + oError.message;
+                    if (error.responseJSON && error.responseJSON.error) {
+                        sErrorMessage += ": " + (error.responseJSON.error.message || error.responseJSON.error.code || JSON.stringify(error.responseJSON.error));
+                    } else if (error.statusText) {
+                        sErrorMessage += ": " + error.statusText;
                     }
                     MessageBox.error(sErrorMessage);
                     oView.setBusy(false);
-                }.bind(this));
-            } else {
-                // Fallback to AJAX
-                $.ajax({
-                    url: sServiceUrl,
-                    method: "POST",
-                    contentType: "application/json",
-                    data: JSON.stringify(oPayload),
-                    success: function (response) {
-                        MessageToast.show("Workflow saved as draft successfully");
-                        oView.setBusy(false);
-                    }.bind(this),
-                    error: function (error) {
-                        console.error("Error saving workflow draft:", error);
-                        var sErrorMessage = "Failed to save workflow draft";
-                        if (error.responseJSON && error.responseJSON.error) {
-                            sErrorMessage += ": " + (error.responseJSON.error.message || error.responseJSON.error.code || JSON.stringify(error.responseJSON.error));
-                        } else if (error.statusText) {
-                            sErrorMessage += ": " + error.statusText;
-                        }
-                        MessageBox.error(sErrorMessage);
-                        oView.setBusy(false);
-                    }.bind(this)
-                });
-            }
+                }.bind(this)
+            });
         },
         
         onPreviewWorkflowFromDialog: function () {
